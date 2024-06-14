@@ -17,6 +17,7 @@ DARK_YELLOW = (254, 221, 0)
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
 WHITE = (255, 255, 255)
+BLUE = (8, 98, 168)
 # Outline for most of the boxes displayed in game.
 OUTLINE_WIDTH: int = 5
 # Width and height of boxes on the second kiosk screen.
@@ -41,7 +42,8 @@ menu_box_1: int = 5
 menu_box_2: int = 5
 menu_box_3: int = 5
 menu_box_4: int = 5
-# Colours of the circles in the game selection menu.
+# Colours of the circles in the game selection menu. Also used for the circle in the 
+# clock in screen.
 circle_colour_1: tuple[int, int, int] = (255, 255, 255)
 circle_colour_2: tuple[int, int, int] = (255, 255, 255)
 # This boolean controls the flashing start order button, and when its visible.
@@ -56,11 +58,13 @@ start_order: bool = False
 type_name: bool = False
 main_screen: bool = True
 choose_game_type: bool = False
-# Checks what day it is, and displays the day.
+# Checks what day it is, and if the game should display the day and stats.
 part_time_day: bool = False
-day: int = 0
-# The
+day: int = 1
+# A list containing each day, and the current day. As a list index begins at 0, the minus 1 ensures the correct day
+# is displayed.
 day_names: list[str] = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+day_current: str = day_names[day - 1]
 # These are rectangles drawn on places on the screen the user can't reach to define the variable for event handling.
 # They are not actually used.
 play = pygame.draw.rect(screen, BLACK, (0, 0, 0, 0))
@@ -73,6 +77,7 @@ error_no_name: bool = False
 error_length: bool = False
 # Controls how long the error message is visible for.
 error_triggered: int = 0
+
 # FONTS AND IMAGES ------------------
 
 
@@ -129,6 +134,11 @@ on_call_text = start_order_font.render("On Call", True, DARK_YELLOW)
 on_call_desc = main_menu_options_xs2.render("Choose a day to play", True, DARK_YELLOW)
 on_call_desc_2 = main_menu_options_xs2.render("No upgrades", True, DARK_YELLOW)
 on_call_desc_3 = main_menu_options_xs2.render("Fixed difficulty", True, DARK_YELLOW)
+# Displaying the day and users stats after clicking 'part time'
+time_of_week = title_font_xs.render("DAY " + str((day)) + ": " + str((day_current)), True, YELLOW)
+clock_in_text_1 = title_font_xs.render("CLOCK", True, WHITE)
+clock_in_text_2 = title_font.render("IN", True, WHITE)
+clock_in_text_3 = title_font.render("!", True, WHITE)
 
 # These are the images used in the game.
 background = pygame.image.load("images/background.jpg")
@@ -156,6 +166,11 @@ first_shift_icon_sized = pygame.transform.scale(first_shift_icon, (ICON))
 settings_icon_sized = pygame.transform.scale(settings_icon, (ICON))
 scoreboard_icon_sized = pygame.transform.scale(scoreboard_icon, (ICON))
 back_name_sized = pygame.transform.scale(back_name, (ICON))
+
+# FUNCTIONS ------------------
+def get_time(): # Add parameters later
+    time: int = pygame.time.get_ticks()
+    return(time)
 
 # GAME CODE ------------------
 
@@ -305,6 +320,15 @@ while running is True:
     if part_time_day is True:
         screen.fill(BLACK)
         day = day + 1
+        screen.blit(time_of_week, (0, -20))
+        clock_in = pygame.draw.circle(screen, BLUE, (750, 485), 225)
+        clock_in_outline = pygame.draw.circle(screen, circle_colour_2, (750, 485), 225, 8)
+        screen.blit(clock_in_text_1, (570, 330))
+        screen.blit(clock_in_text_2, (650, 480))
+        screen.blit(clock_in_text_3, (810, 480))
+        
+            
+        
     # EVENT HANDLING ------------------
 
     for event in pygame.event.get():
@@ -365,10 +389,13 @@ while running is True:
                         # The game starts, and the typing phase ends.
                         choose_game_type = True
                         type_name = False
+        # If the user selects part time as their game mode:
         if event.type == pygame.MOUSEBUTTONDOWN:
             if part_time.collidepoint(event.pos):
                 part_time_day = True
                 choose_game_type = False
+                last_switch = 0
+                visible = True
     pygame.display.flip()
 # Therefore moving onto the next bit of code, closing the window.
 pygame.quit()
