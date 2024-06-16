@@ -64,19 +64,35 @@ day: int = 1
 # A list containing each day, and the current day. As a list index begins at 0, the minus 1 ensures the correct day
 # is displayed.
 day_names: list[str] = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
-day_current: str = day_names[day - 1]
+day_current = day_names[day - 1]
+day_reduced: bool = False
+day_current_updated: bool = False
+day_increased: bool = False
 # These are rectangles drawn on places on the screen the user can't reach to define the variable for event handling.
 # They are not actually used.
 play = pygame.draw.rect(screen, BLACK, (0, 0, 0, 0))
 back = pygame.draw.rect(screen, BLACK, (0, 0, 0, 0))
 part_time = pygame.draw.rect(screen, BLACK, (0, 0, 0, 0))
 on_call = pygame.draw.rect(screen, BLACK, (0, 0, 0, 0))
+toggle_day = pygame.draw.rect(screen, BLACK, (0, 0, 0, 0))
+clock_in = pygame.draw.rect(screen, BLACK, (0, 0, 0, 0))
 # Checks if the user didn't enter a name.
 error_no_name: bool = False
 # Checks if the length is too short or long of the users name.
 error_length: bool = False
 # Controls how long the error message is visible for.
 error_triggered: int = 0
+# Checks whether to display yesterdays stats or todays.
+today_stats: bool = True
+yesterday_stats: bool = False
+# The length and positioning of the toggle day button.
+toggle_day_length: int = 330
+toggle_day_x: int = 95
+toggle_text_x: int = 115
+# Checks if the game has begun.
+begin_game: bool = False
+# Stats that are displayed before a new day will go here.
+
 
 # FONTS AND IMAGES ------------------
 
@@ -135,10 +151,20 @@ on_call_desc = main_menu_options_xs2.render("Choose a day to play", True, DARK_Y
 on_call_desc_2 = main_menu_options_xs2.render("No upgrades", True, DARK_YELLOW)
 on_call_desc_3 = main_menu_options_xs2.render("Fixed difficulty", True, DARK_YELLOW)
 # Displaying the day and users stats after clicking 'part time'
-time_of_week = title_font_xs.render("DAY " + str((day)) + ": " + str((day_current)), True, YELLOW)
 clock_in_text_1 = title_font_xs.render("CLOCK", True, WHITE)
 clock_in_text_2 = title_font.render("IN", True, WHITE)
 clock_in_text_3 = title_font.render("!", True, WHITE)
+stats_title = title_font_xs.render("STATS", True, YELLOW)
+stats_1 = heading_font.render("Customers served: ", True, DARK_YELLOW)
+stats_2 = heading_font.render("Money earnt: ", True, DARK_YELLOW)
+stats_3 = heading_font.render("Biggest order: ", True, DARK_YELLOW)
+stats_4 = heading_font.render("Average order time: ", True, DARK_YELLOW)
+stats_5 = heading_font.render("Average happiness: ", True, DARK_YELLOW)
+stats_6 = heading_font.render("Products served: ", True, DARK_YELLOW)
+stats_7 = heading_font.render("Products wasted: ", True, DARK_YELLOW)
+stats_8 = heading_font.render("Total score: ", True, DARK_YELLOW)
+yesterday_text = main_menu_options.render("YESTERDAY", True, YELLOW)
+today_text = main_menu_options.render("TODAY", True, YELLOW)
 
 # These are the images used in the game.
 background = pygame.image.load("images/background.jpg")
@@ -168,9 +194,6 @@ scoreboard_icon_sized = pygame.transform.scale(scoreboard_icon, (ICON))
 back_name_sized = pygame.transform.scale(back_name, (ICON))
 
 # FUNCTIONS ------------------
-def get_time(): # Add parameters later
-    time: int = pygame.time.get_ticks()
-    return(time)
 
 # GAME CODE ------------------
 
@@ -317,16 +340,78 @@ while running is True:
             circle_colour_2 = (255, 255, 0)
         else:
             circle_colour_2 = (255, 255, 255)
+    # If the user selects 'part_time', or if a day has finished during the part time gamemode:
     if part_time_day is True:
         screen.fill(BLACK)
-        day = day + 1
-        screen.blit(time_of_week, (0, -20))
-        clock_in = pygame.draw.circle(screen, BLUE, (750, 485), 225)
-        clock_in_outline = pygame.draw.circle(screen, circle_colour_2, (750, 485), 225, 8)
-        screen.blit(clock_in_text_1, (570, 330))
-        screen.blit(clock_in_text_2, (650, 480))
-        screen.blit(clock_in_text_3, (810, 480))
-        
+        if not day_increased:
+            day = day + 1
+            day_increased = True
+            original_day = day
+        # The day is increased by 1.
+        # The box containing the users stats.
+        pygame.draw.rect(screen, WHITE, (30, 160, 470, 700), 4)
+        screen.blit(stats_title, (100, 150))
+        screen.blit(stats_1, (40, 270))
+        screen.blit(stats_2, (40, 320))
+        screen.blit(stats_3, (40, 370))
+        screen.blit(stats_4, (40, 420))
+        screen.blit(stats_5, (40, 470))
+        screen.blit(stats_6, (40, 520))
+        screen.blit(stats_7, (40, 570))
+        screen.blit(stats_8, (40, 620))
+        # If it isn't the first day, the yesterday button is created.
+        if day > 0:
+            # A button allowing the user to view their previous stats.
+            toggle_day = pygame.draw.rect(screen, RED, (toggle_day_x, 720, toggle_day_length, BUTTON2_HEIGHT))
+            toggle_day_outline = pygame.draw.rect(screen, WHITE, (toggle_day_x, 720, toggle_day_length, BUTTON2_HEIGHT), 4)
+        # If the user wants to display todays stats:
+        if today_stats is True:
+            day_reduced = False
+            day = original_day
+            # The clock in circle is drawn, with the text inside.
+            clock_in = pygame.draw.circle(screen, BLUE, (750, 485), 225)
+            clock_in_outline = pygame.draw.circle(screen, circle_colour_2, (750, 485), 225, 8)
+            screen.blit(clock_in_text_1, (570, 330))
+            screen.blit(clock_in_text_2, (650, 480))
+            # The exclamation mark inside the clock in circle flashes with the same code as the start order
+            # variable, except it flashes faster.
+            game_opened = pygame.time.get_ticks()
+            if game_opened - last_switch > 500:
+                visible = not visible
+                last_switch = game_opened
+            if visible:
+                screen.blit(clock_in_text_3, (810, 480))
+            if not day_current_updated:
+                day_current = day_names[day - 1]
+                day_current_updated = True
+            # The time of week is defined by the day's number and the day's name.
+            time_of_week = title_font_xs.render("DAY " + str((day)) + ": " + str((day_current)), True, YELLOW)
+            # The time of week is displayed.
+            screen.blit(time_of_week, (0, -20))
+            # Dimensions of the button are updated.
+            toggle_day_length = 330
+            toggle_day_x = 95
+            toggle_text_x = 115
+            # The text, 'yesterday' is put inside the button.
+            screen.blit(yesterday_text, (toggle_text_x, 720))
+        # If the user wants to display yesterdays stats:
+        if yesterday_stats is True:
+            day_current_updated = False
+            if not day_reduced:
+                day = day - 1
+                day_current = day_names[day - 1]
+                day_reduced = True
+            time_of_week = title_font_xs.render("DAY " + str((day)) + ": " + str((day_current)), True, YELLOW)
+            # The time of week is displayed.
+            screen.blit(time_of_week, (0, -20))
+            # Dimensions of the button are updated.
+            toggle_day_length = 230
+            toggle_day_x = 140
+            toggle_text_x = 175
+            # The text, 'today' is put inside the button.
+            screen.blit(today_text, (toggle_text_x, 720))
+    if begin_game is True:
+        screen.fill(BLACK)
             
         
     # EVENT HANDLING ------------------
@@ -337,7 +422,7 @@ while running is True:
             # The loop ends,
             running = False
         # If the user clicks on 'start order', the following code executes:
-        elif event.type == pygame.MOUSEBUTTONDOWN:
+        if event.type == pygame.MOUSEBUTTONDOWN:
             if start_order_position.collidepoint(event.pos):
                 # The program recognises the user has clicked on 'start order' and will no longer run the code requiring start_order to be false.
                 start_order = True
@@ -365,6 +450,12 @@ while running is True:
                 else:
                     # The keystroke is added into the variable.
                     user_name += event.unicode
+                # If the user tries to enter spaces as their name without meeting the character limit:
+                if event.key == pygame.K_SPACE:
+                    name_length = len(user_name)
+                    if name_length < 4:
+                        # Their inputs are deleted.
+                        user_name = ""
                 # If the presses enter while typing:
                 if event.key == pygame.K_RETURN:
                     # The name is reduced by 1 as the return key is also added to the variable when pressed.
@@ -396,6 +487,18 @@ while running is True:
                 choose_game_type = False
                 last_switch = 0
                 visible = True
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if toggle_day.collidepoint(event.pos):
+                if today_stats is True: 
+                    today_stats = False
+                    yesterday_stats = True
+                else:
+                    today_stats = True
+                    yesterday_stats = False
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if clock_in.collidepoint(event.pos):
+                begin_game = True
+                part_time_day = False
     pygame.display.flip()
 # Therefore moving onto the next bit of code, closing the window.
 pygame.quit()
