@@ -1,16 +1,26 @@
+from typing import Tuple
 # Importing pygame into the program
 import pygame
 
 # Activating pygame
 pygame.init()
 
+# PROGRAM STATES
 
-# CONSTANTS ------------------
+# These define what part of the program the user is up to, used for calling the correct function
+# corresponding to the program state.
+class ProgramState:
+    GAME_OPEN: int = 0
+    MAIN_MENU: int = 1
+    ENTER_NAME: int = 2
+    CHOOSE_GAMEMODE: int = 3
+    DAY_STATS: int = 4
+    GAME_MENU: int = 5
+# The state is initially set to the first phase so the program starts.
+current_state: int = ProgramState.GAME_OPEN
 
+# CONSTANTS
 
-# Defining the size of the game window in pixels as constants.
-SCREEN_WIDTH = 1000  # 1200
-SCREEN_HEIGHT = 900  # 700
 # The rgb code for each color.
 YELLOW = (255, 255, 0)
 DARK_YELLOW = (254, 221, 0)
@@ -27,37 +37,34 @@ BUTTON2_HEIGHT_EXTENDED: int = 96
 # Size of the icons used on the second kiosk screen.
 ICON: tuple[int, int] = 50, 50
 
-# PREDEFINED VARIABLES ------------------
+# PREDEFINED VARIABLES
 
-
+# Defining the size of the game window in pixels as constants.
+screen_width = 1000  # max 1200
+screen_height = 900  # max 700
 # The variable responsible for creating the game window with the parameters provided.
-screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+screen = pygame.display.set_mode((screen_width, screen_height))
 # Sets the users name to none so they can make their own.
 user_name = ""
 # The title of the game window.
 pygame.display.set_caption("McHugo's")
-# The outlines for different shapes. These all have to be seperate because their values
-# are indivdually modified.
-menu_box_1: int = 5
-menu_box_2: int = 5
-menu_box_3: int = 5
-menu_box_4: int = 5
-# Colours of the circles in the game selection menu. Also used for the circle in the 
-# clock in screen.
-circle_colour_1: tuple[int, int, int] = (255, 255, 255)
-circle_colour_2: tuple[int, int, int] = (255, 255, 255)
 # This boolean controls the flashing start order button, and when its visible.
 visible: bool = True
-# This boolean sets the time since the last switch from visible to not visible (part of the blinking order variable)
+# This variable initially defines the time since the last switch from visible to not visible (part of the blinking order variable)
 last_switch: int = 0
 # This boolean controls whether the game is running or not.
 running: bool = True
-# These booleans check if various buttons have been clicked or if values have been entered.
-# All are defaulted as false so the game goes through its phases periodically.
-start_order: bool = False
-type_name: bool = False
-main_screen: bool = True
-choose_game_type: bool = False
+# This boolean checks if an error has been triggered so another variable can act off it.
+error: bool = False
+# This variable states what the error was in a variable so an action can be taken depending on what it is.
+error_type: str = ""
+
+# CURRENTLY UNUSED VARIABLES (DELETE IF NOT NEEDED)
+
+# Colours of the circles in the game selection menu. Also used for the circle in the 
+# clock in screen.
+circle_colour_1: Tuple[int, int, int] = (255, 255, 255)
+circle_colour_2: Tuple[int, int, int] = (255, 255, 255)
 # Checks what day it is, and if the game should display the day and stats.
 part_time_day: bool = False
 day: int = 1
@@ -68,20 +75,6 @@ day_current = day_names[day - 1]
 day_reduced: bool = False
 day_current_updated: bool = False
 day_increased: bool = False
-# These are rectangles drawn on places on the screen the user can't reach to define the variable for event handling.
-# They are not actually used.
-play = pygame.draw.rect(screen, BLACK, (0, 0, 0, 0))
-back = pygame.draw.rect(screen, BLACK, (0, 0, 0, 0))
-part_time = pygame.draw.rect(screen, BLACK, (0, 0, 0, 0))
-on_call = pygame.draw.rect(screen, BLACK, (0, 0, 0, 0))
-toggle_day = pygame.draw.rect(screen, BLACK, (0, 0, 0, 0))
-clock_in = pygame.draw.rect(screen, BLACK, (0, 0, 0, 0))
-# Checks if the user didn't enter a name.
-error_no_name: bool = False
-# Checks if the length is too short or long of the users name.
-error_length: bool = False
-# Controls how long the error message is visible for.
-error_triggered: int = 0
 # Checks whether to display yesterdays stats or todays.
 today_stats: bool = True
 yesterday_stats: bool = False
@@ -89,12 +82,8 @@ yesterday_stats: bool = False
 toggle_day_length: int = 330
 toggle_day_x: int = 95
 toggle_text_x: int = 115
-# Checks if the game has begun.
-begin_game: bool = False
-# Stats that are displayed before a new day will go here.
 
-
-# FONTS AND IMAGES ------------------
+# FONTS AND IMAGES
 
 
 # The fonts for the game.
@@ -137,7 +126,7 @@ length_incorrect = start_order_font_xs.render(
     "Name must be between 3-25 characters", True, RED
 )
 back_name_text = main_menu_options.render("BACK", True, DARK_YELLOW)
-# Choosing a game mode
+# Choosing a game mode (UNUSED)
 choose_mode_1 = title_font.render("Choose your", True, YELLOW)
 choose_mode_2 = title_font.render("gamemode.", True, YELLOW)
 part_time_text = start_order_font.render("Part Time", True, DARK_YELLOW)
@@ -150,7 +139,7 @@ on_call_text = start_order_font.render("On Call", True, DARK_YELLOW)
 on_call_desc = main_menu_options_xs2.render("Choose a day to play", True, DARK_YELLOW)
 on_call_desc_2 = main_menu_options_xs2.render("No upgrades", True, DARK_YELLOW)
 on_call_desc_3 = main_menu_options_xs2.render("Fixed difficulty", True, DARK_YELLOW)
-# Displaying the day and users stats after clicking 'part time'
+# Displaying the day and users stats after clicking 'part time' (UNUSED)
 clock_in_text_1 = title_font_xs.render("CLOCK", True, WHITE)
 clock_in_text_2 = title_font.render("IN", True, WHITE)
 clock_in_text_3 = title_font.render("!", True, WHITE)
@@ -193,300 +182,312 @@ settings_icon_sized = pygame.transform.scale(settings_icon, (ICON))
 scoreboard_icon_sized = pygame.transform.scale(scoreboard_icon, (ICON))
 back_name_sized = pygame.transform.scale(back_name, (ICON))
 
-# FUNCTIONS ------------------
+# FUNCTIONS
+def main_screen_now(screen) -> None:
+    """Display the core elements of the game screen.
 
-# GAME CODE ------------------
+    Args:
+        screen: The current size of the game window.
+    """
+    # Draws the various elements on screen.
+    screen.blit(background, (0, 0))
+    screen.blit(main_menu_kiosk, (0, 35))
+    screen.blit(game_title, (325, -25))
+    screen.blit(logo_1, (400, 80))
+    screen.blit(logo_2, (199, 535))
+    screen.blit(version, (620, 840))
 
 
-# Unless the game is closed, this will always be onscreen.
-while running is True:
-    if main_screen is True:
-        screen.blit(background, (0, 0))
-        screen.blit(main_menu_kiosk, (0, 35))
-        screen.blit(game_title, (325, -25))
-        screen.blit(logo_1, (400, 80))
-        screen.blit(logo_2, (199, 535))
-        screen.blit(version, (620, 840))
-    # Only if the user has not clicked 'start order' will these lines of code execute.
-    if start_order is False:
-        screen.blit(kiosk_heading_1, (38, 55))
-        screen.blit(kiosk_heading_2, (48, 90))
-        screen.blit(hungry_hugo, (44, 180))
-        # Checks how long it was until the game was opened, for a future variable.
-        game_opened = pygame.time.get_ticks()
-        # If the game running minus the last visibility switch equals 2:
-        if game_opened - last_switch > 2000:
-            # Visibility is changed to none.
-            visible = not visible
-            # The last switch variable is changed to the amount of time the game has been opened for.
-            last_switch = game_opened
-        # If visibility of the box has been toggled to on, the box is drawn.
-        if visible:
-            screen.blit(start_order_1, (50, 235))
-            screen.blit(start_order_2, (50, 285))
-            screen.blit(start_order_3, (65, 330))
-            screen.blit(start_order_4, (110, 378))
-            start_order_position = pygame.draw.rect(
-                screen, BLACK, (44, 240, 200, 200), OUTLINE_WIDTH
-            )
-    # If the user starts their order, a new menu on the kiosk is drawn with new buttons.
-    if start_order is True:
-        screen.blit(logo_3, (105, 50))
-        play = pygame.draw.rect(
-            screen, BLACK, (40, 125, BUTTON2_WIDTH, BUTTON2_HEIGHT), menu_box_1
+def start_order_now(screen) -> bool:
+    """Display the start button for access to the main menu.
+
+    Args:
+        screen: The current size of the game window.
+
+    Returns:
+        bool: What game state the game should be in.
+    """
+    # Accesses the last_switch and visible variables outside the function so they can
+    # be used for visiblity.
+    global last_switch, visible
+    # Draws elements of the screen not affected by visibility.
+    screen.blit(kiosk_heading_1, (38, 55))
+    screen.blit(kiosk_heading_2, (48, 90))
+    screen.blit(hungry_hugo, (44, 180))
+    
+    # Calls the toggle_visibility function.
+    visible = toggle_visibility(last_switch, visible, 2000, True)
+    # If the toggle_visibility function returns true:
+    if visible:
+        # The elements are shown.
+        screen.blit(start_order_1, (50, 235))
+        screen.blit(start_order_2, (50, 285))
+        screen.blit(start_order_3, (65, 330))
+        screen.blit(start_order_4, (110, 378))
+        # The button to start the users order.
+        start_order_position = pygame.draw.rect(
+        screen, BLACK, (44, 240, 200, 200), OUTLINE_WIDTH)
+    if not visible:
+        # The button is still clickable, but isn't visible.
+        start_order_position = pygame.draw.rect(
+        screen, WHITE, (44, 240, 200, 200))
+    # The events are handled externally, checking if the user has clicked the start_order button,
+    # and if they did the desired state to move to is provided.
+    current_event = handle_events(event, "click", start_order_position, ProgramState.MAIN_MENU)
+    # The state of the game is returned to the main loop so the appropiate function can be called.
+    return current_event
+    
+
+def main_menu(screen) -> bool:
+    """The main menu where the user can choose what they want to do.
+
+    Args:
+        screen: The current size of the game window.
+
+    Returns:
+        bool: What game state the game should be in.
+    """
+    # The rectangles must be defined initially so the menu_box variables can draw from them and update
+    # thickness. They aren't drawn because the thickness has to be continously updated first and 
+    # defined.
+    play_rect = pygame.Rect(40, 125, BUTTON2_WIDTH, BUTTON2_HEIGHT)
+    first_shift_rect = pygame.Rect(40, 191, BUTTON2_WIDTH, BUTTON2_HEIGHT_EXTENDED)
+    scoreboard_rect = pygame.Rect(40, 297, BUTTON2_WIDTH, BUTTON2_HEIGHT_EXTENDED)
+    settings_rect = pygame.Rect(40, 403, BUTTON2_WIDTH, BUTTON2_HEIGHT)
+
+    # The events are handled externally, checking if the user is hovering over a menu_box,
+    # using the rectangles defined above. No desired event is provided as the game state
+    # shouldn't change.
+    menu_box_1 = handle_events(event, "hover", play_rect, None)
+    menu_box_2 = handle_events(event, "hover", first_shift_rect, None)
+    menu_box_3 = handle_events(event, "hover", scoreboard_rect, None)
+    menu_box_4 = handle_events(event, "hover", settings_rect, None)  
+    
+    # The buttons are now drawn now the menu_boxes have been defined.
+    play = pygame.draw.rect(
+        screen, BLACK, play_rect, menu_box_1
+    )
+    first_shift = pygame.draw.rect(
+        screen, BLACK, first_shift_rect, menu_box_2
+    )
+    scoreboard = pygame.draw.rect(
+        screen, BLACK, scoreboard_rect, menu_box_3
+    )
+    settings = pygame.draw.rect(
+        screen, BLACK, settings_rect, menu_box_4
         )
-        first_shift = pygame.draw.rect(
-            screen,
-            BLACK,
-            (40, 191, BUTTON2_WIDTH, BUTTON2_HEIGHT_EXTENDED),
-            menu_box_2,
-        )
-        scoreboard = pygame.draw.rect(
-            screen,
-            BLACK,
-            (40, 297, BUTTON2_WIDTH, BUTTON2_HEIGHT_EXTENDED),
-            menu_box_3,
-        )
-        settings = pygame.draw.rect(
-            screen, BLACK, (40, 403, BUTTON2_WIDTH, BUTTON2_HEIGHT), menu_box_4
-        )
-        screen.blit(play_button, (45, 125))
-        screen.blit(tutorial_button_1, (45, 192))
-        screen.blit(tutorial_button_2, (45, 232))
-        screen.blit(scoreboard_button_1, (45, 297))
-        screen.blit(scoreboard_button_2, (45, 342))
-        screen.blit(setting_button, (47, 412))
-        screen.blit(play_icon_sized, (198, 125))
-        screen.blit(first_shift_icon_sized, (198, 215))
-        screen.blit(settings_icon_sized, (198, 405))
-        screen.blit(scoreboard_icon_sized, (198, 320))
-        # If the mouse is hovering over a menu item, its outline is thickened.
-        # Otherwise, it remains the same.
-        if play.collidepoint(pygame.mouse.get_pos()):
-            menu_box_1 = 8
-        else:
-            menu_box_1 = 5
-        if first_shift.collidepoint(pygame.mouse.get_pos()):
-            menu_box_2 = 8
-        else:
-            menu_box_2 = 5
-        if scoreboard.collidepoint(pygame.mouse.get_pos()):
-            menu_box_3 = 8
-        else:
-            menu_box_3 = 5
-        if settings.collidepoint(pygame.mouse.get_pos()):
-            menu_box_4 = 8
-        else:
-            menu_box_4 = 5
-    # If the user presses play, the background is darkened, and all previous material is removed.
-    if type_name is True:
-        # This piece of text has to be stored in the while loop so its constantly updated with new inputs.
-        username_input = name_font.render(user_name, True, DARK_YELLOW)
-        screen.blit(name_background, (0, 0))
-        screen.blit(enter_name, (20, 50))
-        screen.blit(enter_name_2, (40, 190))
-        screen.blit(enter_name_3, (300, 290))
-        # This is the users input.
-        screen.blit(username_input, (30, 430))
-        # This is the back buttons textures.
-        back = pygame.draw.rect(screen, RED, (370, 800, 240, BUTTON2_HEIGHT))
-        back_outline = pygame.draw.rect(
-            screen, WHITE, (370, 800, 240, BUTTON2_HEIGHT), 4
-        )
-        screen.blit(back_name_sized, (375, 805))
-        screen.blit(back_name_text, (440, 800))
-        # If the user doesn't enter a name:
-        if error_no_name is True:
-            # The time since the error was triggered is noted (/1000 to convert milliseconds)
-            elapsed_time = pygame.time.get_ticks() - error_triggered
-            if elapsed_time < 3000:
-                # An error message is displayed.
-                screen.blit(no_name, (200, 630))
-            else:
-                error_no_name = False
-        # If the user entered the incorrect amount of characters while typing their name:
-        if error_length is True:
-            elapsed_time = pygame.time.get_ticks() - error_triggered
-            if elapsed_time < 3000:
-                # A different message is displayed.
-                screen.blit(length_incorrect, (5, 630))
-            else:
-                error_length = False
-    if choose_game_type is True:
-        screen.fill(BLACK)
-        # These are the circles the user can click on containing info about the gamemodes.
-        part_time = pygame.draw.circle(
-            screen, circle_colour_1, (240, 600), 200, OUTLINE_WIDTH
-        )
-        on_call = pygame.draw.circle(
-            screen, circle_colour_2, (760, 600), 200, OUTLINE_WIDTH
-        )
-        screen.blit(choose_mode_1, (100, 60))
-        screen.blit(choose_mode_2, (100, 190))
-        screen.blit(part_time_text, (115, 440))
-        screen.blit(part_time_desc, (80, 540))
-        screen.blit(part_time_desc_2, (85, 600))
-        screen.blit(part_time_desc_3, (75, 660))
-        screen.blit(on_call_text, (660, 440))
-        screen.blit(on_call_desc, (590, 540))
-        screen.blit(on_call_desc_2, (660, 600))
-        screen.blit(on_call_desc_3, (635, 660))
-        # If the user is hovering over a circle, it changes yellow.
-        if part_time.collidepoint(pygame.mouse.get_pos()):
-            circle_colour_1 = (255, 255, 0)
-        else:
-            circle_colour_1 = (255, 255, 255)
-        if on_call.collidepoint(pygame.mouse.get_pos()):
-            circle_colour_2 = (255, 255, 0)
-        else:
-            circle_colour_2 = (255, 255, 255)
-    # If the user selects 'part_time', or if a day has finished during the part time gamemode:
-    if part_time_day is True:
-        screen.fill(BLACK)
-        if not day_increased:
-            day = day + 1
-            day_increased = True
-            original_day = day
-        # The day is increased by 1.
-        # The box containing the users stats.
-        pygame.draw.rect(screen, WHITE, (30, 160, 470, 700), 4)
-        screen.blit(stats_title, (100, 150))
-        screen.blit(stats_1, (40, 270))
-        screen.blit(stats_2, (40, 320))
-        screen.blit(stats_3, (40, 370))
-        screen.blit(stats_4, (40, 420))
-        screen.blit(stats_5, (40, 470))
-        screen.blit(stats_6, (40, 520))
-        screen.blit(stats_7, (40, 570))
-        screen.blit(stats_8, (40, 620))
-        # If it isn't the first day, the yesterday button is created.
-        if day > 0:
-            # A button allowing the user to view their previous stats.
-            toggle_day = pygame.draw.rect(screen, RED, (toggle_day_x, 720, toggle_day_length, BUTTON2_HEIGHT))
-            toggle_day_outline = pygame.draw.rect(screen, WHITE, (toggle_day_x, 720, toggle_day_length, BUTTON2_HEIGHT), 4)
-        # If the user wants to display todays stats:
-        if today_stats is True:
-            day_reduced = False
-            day = original_day
-            # The clock in circle is drawn, with the text inside.
-            clock_in = pygame.draw.circle(screen, BLUE, (750, 485), 225)
-            clock_in_outline = pygame.draw.circle(screen, circle_colour_2, (750, 485), 225, 8)
-            screen.blit(clock_in_text_1, (570, 330))
-            screen.blit(clock_in_text_2, (650, 480))
-            # The exclamation mark inside the clock in circle flashes with the same code as the start order
-            # variable, except it flashes faster.
-            game_opened = pygame.time.get_ticks()
-            if game_opened - last_switch > 500:
-                visible = not visible
-                last_switch = game_opened
-            if visible:
-                screen.blit(clock_in_text_3, (810, 480))
-            if not day_current_updated:
-                day_current = day_names[day - 1]
-                day_current_updated = True
-            # The time of week is defined by the day's number and the day's name.
-            time_of_week = title_font_xs.render("DAY " + str((day)) + ": " + str((day_current)), True, YELLOW)
-            # The time of week is displayed.
-            screen.blit(time_of_week, (0, -20))
-            # Dimensions of the button are updated.
-            toggle_day_length = 330
-            toggle_day_x = 95
-            toggle_text_x = 115
-            # The text, 'yesterday' is put inside the button.
-            screen.blit(yesterday_text, (toggle_text_x, 720))
-        # If the user wants to display yesterdays stats:
-        if yesterday_stats is True:
-            day_current_updated = False
-            if not day_reduced:
-                day = day - 1
-                day_current = day_names[day - 1]
-                day_reduced = True
-            time_of_week = title_font_xs.render("DAY " + str((day)) + ": " + str((day_current)), True, YELLOW)
-            # The time of week is displayed.
-            screen.blit(time_of_week, (0, -20))
-            # Dimensions of the button are updated.
-            toggle_day_length = 230
-            toggle_day_x = 140
-            toggle_text_x = 175
-            # The text, 'today' is put inside the button.
-            screen.blit(today_text, (toggle_text_x, 720))
-    if begin_game is True:
-        screen.fill(BLACK)
-            
+    
+    # The text is drawn.
+    screen.blit(logo_3, (105, 50))
+    screen.blit(play_button, (45, 125))
+    screen.blit(tutorial_button_1, (45, 192))
+    screen.blit(tutorial_button_2, (45, 232))
+    screen.blit(scoreboard_button_1, (45, 297))
+    screen.blit(scoreboard_button_2, (45, 342))
+    screen.blit(setting_button, (47, 412))
+    screen.blit(play_icon_sized, (198, 125))
+    screen.blit(first_shift_icon_sized, (198, 215))
+    screen.blit(settings_icon_sized, (198, 405))
+    screen.blit(scoreboard_icon_sized, (198, 320))
+    
+    # The event function checks if the user has clicked play.      
+    current_event = handle_events(event, "click", play, ProgramState.ENTER_NAME)
+    return current_event
         
-    # EVENT HANDLING ------------------
+def toggle_visibility(last_switch_local: int, visible_local: bool, time_switch: int, repeat: bool) -> bool:
+    """Controls the visibility of a desired element.
 
+    Args:
+        last_switch_local (int): The last time the visibility was toggled.
+        visible_local (bool): The status of the elements visibility.
+        time_switch (int): The time until it takes for visibility to be toggled.
+        repeat (bool): Whether the function should be repeated until its no longer called.
+
+    Returns:
+        bool: The status of the elements visiblity.
+    """
+    # The global variable is accessed so it can be updated.
+    global last_switch
+    # The program begins counting from when the funtion was called.
+    start_switches = pygame.time.get_ticks()
+    # If the timer minus the last visibility switch is greater than the desired time to stay on screen:
+    if start_switches - last_switch_local > time_switch:
+        # Visibility is changed to none.
+        visible_local = not visible_local
+        # If the visibility should be repeatedly toggled:
+        if repeat:
+            # The last switch variable is changed to the amount of time the game has been opened for.
+            # The global variable is accessed so the argument provided by the function calling it
+            # can be altered.
+            last_switch = start_switches
+    return visible_local
+
+def name_entry(screen, events) -> bool:
+    """Where the user can enter their name.
+
+    Args:
+        screen: The current size of the game window.
+        events: The pygame event enabler.
+
+    Returns:
+        bool: What game state the game should be in.
+    """
+    # The user_name, error, and error_type variables need to be globally accessed because
+    # they can't be defined within the function since they need to constantly change.
+    # last_switch and visible are again accessed to ensure the toggle_visibility function
+    # works properly by defining them.
+    global user_name, last_switch, visible, error, error_type
+    
+    # The text is drawn.
+    screen.blit(name_background, (0, 0))
+    screen.blit(enter_name, (20, 50))
+    screen.blit(enter_name_2, (40, 190))
+    screen.blit(enter_name_3, (300, 290))
+    
+    # This is the back buttons textures.
+    back = pygame.draw.rect(screen, RED, (370, 800, 240, BUTTON2_HEIGHT))
+    # This is the outline of the back button.
+    pygame.draw.rect(screen, WHITE, (370, 800, 240, BUTTON2_HEIGHT), 4)
+    # Text for the back button, drawn after so the button doesn't cover it,
+    screen.blit(back_name_sized, (375, 805))
+    screen.blit(back_name_text, (440, 800))
+    
+    # In order to be continously updated, the pygame event handling for loop must be 
+    # used.
+    for event in events:
+        # If the user types, the event handling function handles the inputs appropiately.
+        user_name = handle_events(event, "type", None, None)
+        # Checks if the user clicked the back button, returning to the previous menu.
+        previous_event = handle_events(event, "click", back, ProgramState.MAIN_MENU)
+        # Checks if the user pressed enter. The desired state of GAME_MENU is only used if
+        # the requirements in the handle_events function is met.
+        current_event = handle_events(event, "enter", None, ProgramState.GAME_MENU)
+        # If the handle_events function returns one of these errors instead of the desired state:
+        if current_event == "error_no_name" or current_event == "error_length":
+            # The error loop is set to true so the program continously displays the error message
+            # even after the error has been triggered.
+            error = True
+            # This is used so the program can tell what error was made as there are two types.
+            error_type = current_event
+            # visible is initially set to true so the program displays the error.
+            visible = True
+            # The program updates last_switch with the new time since the error was made.
+            last_switch = pygame.time.get_ticks()
+        # Only if current_event is the desired state will it return its value, otherwise there would be
+        # nothing to return and an error would occur as current_event can't always be returned.
+        if current_event == 5:
+            return current_event
+        # If the handle_events function indicates to the main loop to go back a stage, its value is returned.
+        if previous_event:
+            return previous_event
+        
+    # If an error occurs:
+    if error:
+        # The visible function is called again, noting repeat is False.
+        visible = toggle_visibility(last_switch, visible, 3000, False)
+        # If the users error was they didn't enter a name:
+        if error_type == "error_no_name":
+        # An error message is displayed.
+            screen.blit(no_name, (200, 630))
+        # If the users error was they didn't enter the correct name length:
+        if error_type == "error_length":
+            screen.blit(length_incorrect, (5, 630))
+        # Once the toggle_visibility function returns False:
+        if not visible:
+            # The loop ends, and the error messages stop displaying.
+            error = False
+    # A font is assigned to the users name here because it changes constantly.
+    username_input = name_font.render(user_name, True, DARK_YELLOW)
+    # This is the users input.
+    screen.blit(username_input, (30, 430))
+    # Nothing is returned down here because the returns need to be within the for loop.
+
+# UNUSED FUNCTIONS ARE BELOW
+
+def choose_gamemode(screen) -> Tuple[Tuple[int, int, int], Tuple[int, int, int], bool]:
+    screen.fill(BLACK)
+    # These are the circles the user can click on containing info about the gamemodes.
+    part_time = pygame.draw.circle(
+        screen, circle_colour_1, (240, 600), 200, OUTLINE_WIDTH
+    )
+    on_call = pygame.draw.circle(
+        screen, circle_colour_2, (760, 600), 200, OUTLINE_WIDTH
+    )
+    screen.blit(choose_mode_1, (100, 60))
+    screen.blit(choose_mode_2, (100, 190))
+    screen.blit(part_time_text, (115, 440))
+    screen.blit(part_time_desc, (80, 540))
+    screen.blit(part_time_desc_2, (85, 600))
+    screen.blit(part_time_desc_3, (75, 660))
+    screen.blit(on_call_text, (660, 440))
+    screen.blit(on_call_desc, (590, 540))
+    screen.blit(on_call_desc_2, (660, 600))
+    screen.blit(on_call_desc_3, (635, 660))
+    # If the user is hovering over a circle, it changes yellow.
+    if part_time.collidepoint(pygame.mouse.get_pos()):
+        circle_colour_1 = (255, 255, 0)
+    else:
+        circle_colour_1 = (255, 255, 255)
+    if on_call.collidepoint(pygame.mouse.get_pos()):
+        circle_colour_2 = (255, 255, 0)
+    else:
+        circle_colour_2 = (255, 255, 255)
+    handle_events(event, "click", part_time, ProgramState.DAY_STATS)
+    return circle_colour_1, circle_colour_2
+
+def part_time_day(screen, today_stats: bool, yesterday_stats: bool, day: int, day_current: str, ) -> Tuple[bool, bool]:
+    toggle_day_x = 0
+    toggle_day_length = 0
+    toggle_text_x = 0
+    toggle_day_x = calculate_stats(toggle_day_x)
+    toggle_day_length = calculate_stats(toggle_day_length)
+    day = calculate_stats(day)
+    day_current = calculate_stats(day_current)
+    toggle_text_x = calculate_stats(toggle_text_x)
+    screen.fill(BLACK)
+    # The box containing the users stats.
+    pygame.draw.rect(screen, WHITE, (30, 160, 470, 700), 4)
+    screen.blit(stats_title, (100, 150))
+    screen.blit(stats_1, (40, 270))
+    screen.blit(stats_2, (40, 320))
+    screen.blit(stats_3, (40, 370))
+    screen.blit(stats_4, (40, 420))
+    screen.blit(stats_5, (40, 470))
+    screen.blit(stats_6, (40, 520))
+    screen.blit(stats_7, (40, 570))
+    screen.blit(stats_8, (40, 620))
+    # If it isn't the first day, the yesterday button is created.
+    if day > 0:
+        # A button allowing the user to view their previous stats.
+        toggle_day = pygame.draw.rect(screen, RED, (toggle_day_x, 720, toggle_day_length, BUTTON2_HEIGHT))
+        pygame.draw.rect(screen, WHITE, (toggle_day_x, 720, toggle_day_length, BUTTON2_HEIGHT), 4)
+    # If the user wants to display todays stats:
+    if today_stats is True:
+        # The clock in circle is drawn, with the text inside.
+        clock_in = pygame.draw.circle(screen, BLUE, (750, 485), 225)
+        pygame.draw.circle(screen, circle_colour_2, (750, 485), 225, 8)
+        screen.blit(clock_in_text_1, (570, 330))
+        screen.blit(clock_in_text_2, (650, 480))
+        # The exclamation mark inside the clock in circle flashes with the same code as the start order
+        # variable, except it flashes faster.
+        toggle_visibility(0, True, 3000, False)
+        visible = toggle_visibility()
+        if visible:
+            screen.blit(clock_in_text_3, (810, 480))
+        # The time of week is defined by the day's number and the day's name.
+        time_of_week = title_font_xs.render("DAY " + str((day)) + ": " + str((day_current)), True, YELLOW)
+        # The time of week is displayed.
+        screen.blit(time_of_week, (0, -20))
+        # The text, 'yesterday' is put inside the button.
+        screen.blit(yesterday_text, (toggle_text_x, 720))
+    # If the user wants to display yesterdays stats:
+    if yesterday_stats is True:
+        time_of_week = title_font_xs.render("DAY " + str((day)) + ": " + str((day_current)), True, YELLOW)
+        # The time of week is displayed.
+        screen.blit(time_of_week, (0, -20))
+        # The text, 'today' is put inside the button.
+        screen.blit(today_text, (toggle_text_x, 720))
     for event in pygame.event.get():
-        # If the user closes the window,
-        if event.type == pygame.QUIT:
-            # The loop ends,
-            running = False
-        # If the user clicks on 'start order', the following code executes:
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            if start_order_position.collidepoint(event.pos):
-                # The program recognises the user has clicked on 'start order' and will no longer run the code requiring start_order to be false.
-                start_order = True
-        # If the user clicks on the play button:
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            if play.collidepoint(event.pos):
-                # The game changes to the 'type name' phase.
-                type_name = True
-                main_screen = False
-                start_order = False
-        # Only if the user is typing their name will the following happen.
-        if type_name is True:
-            # If the user clicks the back button:
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                if back.collidepoint(event.pos):
-                    # They return to the main menu.
-                    main_screen = True
-                    start_order = True
-                    type_name = False
-            # If the user presses any key:
-            if event.type == pygame.KEYDOWN:
-                # The user_name variable is reduced by one.
-                if event.key == pygame.K_BACKSPACE:
-                    user_name = user_name[:-1]
-                else:
-                    # The keystroke is added into the variable.
-                    user_name += event.unicode
-                # If the user tries to enter spaces as their name without meeting the character limit:
-                if event.key == pygame.K_SPACE:
-                    name_length = len(user_name)
-                    if name_length < 4:
-                        # Their inputs are deleted.
-                        user_name = ""
-                # If the presses enter while typing:
-                if event.key == pygame.K_RETURN:
-                    # The name is reduced by 1 as the return key is also added to the variable when pressed.
-                    # This ensures the users name can be read as empty and the correct amount of characters.
-                    user_name = user_name[:-1]
-                    # Length of the users name is calculated.
-                    name_length = len(user_name)
-                    # If the user doesn't enter anything for their name:
-                    if user_name == "":
-                        # The no name error message is triggered, and if the length message is showing, it is disabled.
-                        error_no_name = True
-                        error_length = False
-                        # The program begins counting the amount of time since the error was triggered.
-                        error_triggered = pygame.time.get_ticks()
-                    # If the users name is below or above the following numbers:
-                    elif name_length < 3 or name_length > 25:
-                        # The opposites of the other error is triggered.
-                        error_length = True
-                        error_no_name = False
-                        error_triggered = pygame.time.get_ticks()
-                    else:
-                        # The game starts, and the typing phase ends.
-                        choose_game_type = True
-                        type_name = False
-        # If the user selects part time as their game mode:
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            if part_time.collidepoint(event.pos):
-                part_time_day = True
-                choose_game_type = False
-                last_switch = 0
-                visible = True
         if event.type == pygame.MOUSEBUTTONDOWN:
             if toggle_day.collidepoint(event.pos):
                 if today_stats is True: 
@@ -495,10 +496,160 @@ while running is True:
                 else:
                     today_stats = True
                     yesterday_stats = False
+    current_event = handle_events("click", clock_in, ProgramState.GAME_MENU), ProgramState.DAY_STATS
+    return today_stats, yesterday_stats, current_event
+
+def calculate_stats(day: int, day_increased: bool, original_day: int, today_stats: bool, day_reduced: bool, day_current: str, day_current_updated: bool, day_names: list[str]) -> Tuple[int, str, int, int, int]:
+    # The day is increased by 1.
+    if not day_increased:
+        day += 1
+        day_increased = True
+        original_day = day
+    display_todays_stats = part_time_day(today_stats)
+    if display_todays_stats:
+        day_reduced = False
+        day = original_day
+        if not day_current_updated:
+            day_current = day_names[day - 1]
+            day_current_updated = True
+        # Dimensions of the button are updated.
+        toggle_day_length = 330
+        toggle_day_x = 95
+        toggle_text_x = 115
+    display_yesterdays_stats = part_time_day(yesterday_stats)
+    if display_yesterdays_stats:
+        day_current_updated = False
+        if not day_reduced:
+            day = day - 1
+            day_current = day_names[day - 1]
+            day_reduced = True
+        # Dimensions of the button are updated.
+        toggle_day_length = 230
+        toggle_day_x = 140
+        toggle_text_x = 175
+    return day, day_current, toggle_day_length, toggle_day_x, toggle_text_x
+
+# END OF UNUSED FUNCTIONS
+
+
+# EVENT HANDLING
+def handle_events(event, keystroke_type: str, button, desired_state: int) -> int | str:
+    """_summary_
+
+    Args:
+        event: The pygame event enabler.
+        keystroke_type (str): The type of pressed key.
+        button: The game element being interacted with.
+        desired_state (int): The game state to move to.
+
+    Returns:
+        int | str: The game state to move to, or an errors name.
+    """
+    # The user name is globally accessed so it can be continously updated.
+    global user_name
+    # If the caller needs to check if a button was clicked:
+    if keystroke_type == "click":
         if event.type == pygame.MOUSEBUTTONDOWN:
-            if clock_in.collidepoint(event.pos):
-                begin_game = True
-                part_time_day = False
+            # If the button is clicked:
+            if button.collidepoint(event.pos):
+                # The desired_state provided in the argument is returned to the caller.
+                # Otherwise, nothing is returned and the state remains intact.
+                return desired_state  
+    
+    # If the caller needs to check if the user is hovering over something:        
+    if keystroke_type == "hover":
+        # If the mouse is hovering over a menu item, its outline is thickened.
+        # Otherwise, it remains the same.
+        if button.collidepoint(pygame.mouse.get_pos()):
+            thickness: int = 8
+        else:
+            thickness: int = 5
+        return thickness
+    
+    # If the caller needs to check if the user is typing something:
+    if keystroke_type == "type":
+        if event.type == pygame.KEYDOWN:
+            # The user_name variable is reduced by one if the user clicks backspace.
+            if event.key == pygame.K_BACKSPACE:
+                user_name = user_name[:-1]
+            # If the user types something:
+            elif event.unicode:
+                # The keystroke is added into the variable.
+                user_name += event.unicode
+            # If the user tries to enter spaces as their name without meeting the character limit:
+            if event.key == pygame.K_SPACE:
+                # Length of the users_name is calculated.
+                name_length = len(user_name)
+                if name_length < 4:
+                    # Their inputs are deleted.
+                    user_name = ""
+        # If all is well, the user_name is returned so another function can use it.
+        return user_name
+    
+    # If the caller needs to check if the user pressed enter:
+    if keystroke_type == "enter":
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_RETURN:
+                # The name is reduced by 1 as the return key is also added to user_name when pressed.
+                # This ensures the users name can be read as empty and the correct amount of characters.
+                user_name = user_name[:-1]
+                # Length of the users name is calculated.
+                name_length = len(user_name)
+                # If the user doesn't enter anything for their name:
+                if user_name == "":
+                    # The program defines the error as being no name, and returns the string.
+                    error = "error_no_name"
+                    return error
+                # If the users name is below or above the following numbers:
+                elif name_length < 3 or name_length > 25:
+                    # The program defines the error as being a length error, and returns the string.
+                    error = "error_length"
+                    return error
+                else:
+                    # If no errors are made then the desired state is returned.
+                    return desired_state
+
+# This is the game loop responsible for calling the functions and receiving the returned values,
+# then using those returns to call a different function to progress through the game.
+while running:
+    # A variable is defined as the pygame event enabler for cleanliness, and allows it to be 
+    # used globally.
+    events = pygame.event.get()
+    for event in events:
+    # If the user closes the window,
+        if event.type == pygame.QUIT:
+        # The loop ends.
+            running = False   
+    # If the game has been opened:
+    if current_state == ProgramState.GAME_OPEN:
+        # The corresponding function is called.
+        main_screen_now(screen)
+        # Another variable, state is responsible for the return value of this function.
+        # This is because current_state can't also be defined as this otherwise it would
+        # no longer equal GAME_OPEN, ending the current phase. So state and current_state
+        # are constantly interchanged so the program functions correctly.
+        state = start_order_now(screen)
+    # As the variables in the ProgramState class have been defined as ints, the program checks
+    # if the variables corresponding number has been returned.
+    if state == 1:
+        # Resets the screen.
+        screen.fill(BLACK)
+        main_screen_now(screen)
+        # Variables interchange.
+        current_state = main_menu(screen)
+    if current_state == 2:
+        screen.fill(BLACK)
+        state = name_entry(screen, events)
+    if current_state == ProgramState.CHOOSE_GAMEMODE:
+        current_state = choose_gamemode(screen)
+    if current_state == ProgramState.DAY_STATS:
+        current_state = part_time_day(screen)
+    if state == 5:
+        current_state = None
+        screen.fill(BLACK)
+    # The display is constantly updated.
     pygame.display.flip()
-# Therefore moving onto the next bit of code, closing the window.
+    # The framerate is set to 30 to minimize system resources.
+    pygame.time.Clock().tick(30)
+# Once the main loop ends, the code moves onto the next piece of code, which is this.
 pygame.quit()
