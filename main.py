@@ -28,6 +28,7 @@ BLACK = (0, 0, 0)
 RED = (255, 0, 0)
 WHITE = (255, 255, 255)
 BLUE = (8, 98, 168)
+GREEN = (80, 200, 120)
 # Outline for most of the boxes displayed in game.
 OUTLINE_WIDTH: int = 5
 # Width and height of boxes on the second kiosk screen.
@@ -139,11 +140,11 @@ length_incorrect = start_order_font_xs.render(
 )
 back_name_text = main_menu_options.render("BACK", True, DARK_YELLOW)
 # Ingame menu
-time_text_1 = body_font.render("WAITING", True, WHITE)
-time_text_1_1 = body_font.render("CARS", True, WHITE)
-time_text_2 = stats_font.render("time", True, WHITE)
-time_text_3 = stats_font.render("amount", True, WHITE)
-time_text_4 = main_menu_options.render("SERVE!", True, WHITE)
+time_text_1 = body_font.render("VIEW", True, WHITE)
+time_text_2 = body_font.render("EXCESS", True, WHITE)
+time_text_3 = body_font.render("CARS", True, WHITE)
+time_text_4 = stats_font.render("time", True, WHITE)
+time_text_5 = main_menu_options.render("SERVE!", True, WHITE)
 # Choosing a game mode (UNUSED)
 choose_mode_1 = title_font.render("Choose your", True, YELLOW)
 choose_mode_2 = title_font.render("gamemode.", True, YELLOW)
@@ -201,7 +202,7 @@ first_shift_icon_sized = pygame.transform.scale(first_shift_icon, (ICON))
 settings_icon_sized = pygame.transform.scale(settings_icon, (ICON))
 scoreboard_icon_sized = pygame.transform.scale(scoreboard_icon, (ICON))
 back_name_sized = pygame.transform.scale(back_name, (ICON))
-car_sized = pygame.transform.scale(car, (50, 80))
+car_sized = pygame.transform.scale(car, (85, 45))
 view_sized = pygame.transform.scale(view, (80, 80))
 
 # FUNCTIONS
@@ -438,32 +439,82 @@ def ingame_menu(screen, screen_width, screen_height):
         current_screen_width = screen_width
         current_screen_height = screen_height
     # A for loop using a list is used for code efficency.
-    # The boxes holding the cars and their stats.
-    for y in dthru_box_y_positions:
-        pygame.draw.rect(screen, WHITE, (80, y, DTHRU_WIDTH - 60, DTHRU_HEIGHT), DTHRU_OUTLINE)
-    pygame.draw.rect(screen, WHITE, (80, 500, DTHRU_WIDTH - 60, DTHRU_HEIGHT + 100), DTHRU_OUTLINE)
-    pygame.draw.rect(screen, DARK_YELLOW, (90, 15, 120, 70))
-    # The button for viewing excess cars.
-    screen.blit(time_text_1, (100, 10))
-    screen.blit(time_text_1_1, (120, 50))
-    # The stats of the cars.
-    screen.blit(time_text_2, (130, 105))
-    screen.blit(time_text_2, (130, 305))
-    screen.blit(time_text_2, (130, 405))
-    screen.blit(time_text_2, (130, 505))
-    screen.blit(time_text_3, (110, 155))
-    screen.blit(time_text_3, (110, 355))
-    screen.blit(time_text_3, (110, 455))
-    screen.blit(time_text_3, (110, 555))
-    screen.blit(time_text_4, (70, 600))
-    # The view icon. (Will normally pop up)
-    screen.blit(view_sized, (110, 210))
-    # The drive thru cars.
-    screen.blit(car_sized, (13, 110))
-    screen.blit(car_sized, (13, 210))
-    screen.blit(car_sized, (13, 310))
-    screen.blit(car_sized, (13, 410))
-    screen.blit(car_sized, (13, 560))
+    # The boxes holding the cars.
+    pygame.draw.rect(screen, WHITE, (0, 0, 1200, 60), DTHRU_OUTLINE)
+    # The cars themselves.
+    screen.blit(car_sized, (150, 10))
+    screen.blit(car_sized, (300, 10))
+    screen.blit(car_sized, (450, 10))
+    screen.blit(car_sized, (600, 10))
+    screen.blit(car_sized, (750, 10))
+    screen.blit(car_sized, (900, 10))
+    screen.blit(car_sized, (1065, 10))
+    # The box for viewing excess cars.
+    pygame.draw.rect(screen, WHITE, (0, 0, 120, 150), DTHRU_OUTLINE)
+    pygame.draw.rect(screen, DARK_YELLOW, (10, 10, 100, 40))
+    screen.blit(time_text_1, (30, 10))
+    screen.blit(time_text_2, (18, 60))
+    screen.blit(time_text_3, (30, 100))
+    # The boxes for each section on the drive thru.
+    pygame.draw.rect(screen, WHITE, (120, 0, 150, 150), DTHRU_OUTLINE)
+    pygame.draw.rect(screen, WHITE, (270, 0, 150, 150), DTHRU_OUTLINE)
+    pygame.draw.rect(screen, WHITE, (420, 0, 150, 150), DTHRU_OUTLINE)
+    pygame.draw.rect(screen, WHITE, (570, 0, 150, 150), DTHRU_OUTLINE)
+    pygame.draw.rect(screen, WHITE, (720, 0, 150, 150), DTHRU_OUTLINE)
+    pygame.draw.rect(screen, WHITE, (870, 0, 150, 150), DTHRU_OUTLINE)
+    pygame.draw.rect(screen, WHITE, (1020, 0, 180, 150), DTHRU_OUTLINE)
+    # The text for the boxes in the drive thru.
+    screen.blit(time_text_4, (175, 60))
+    screen.blit(time_text_4, (325, 60))
+    screen.blit(time_text_4, (475, 60))
+    screen.blit(time_text_4, (625, 60))
+    screen.blit(time_text_4, (775, 60))
+    screen.blit(time_text_4, (925, 60))
+    screen.blit(time_text_4, (1090, 60))
+    screen.blit(time_text_5, (1020, 90))
+    # The box containing how big the order is.
+    # Box 1.
+    pygame.draw.rect(screen, WHITE, (135, 100, 120, 40), DTHRU_OUTLINE)
+    pygame.draw.rect(screen, GREEN, (135, 100, 24, 40))
+    pygame.draw.rect(screen, WHITE, (159, 100, 24, 40), DTHRU_OUTLINE)
+    pygame.draw.rect(screen, WHITE, (183, 100, 24, 40), DTHRU_OUTLINE)
+    pygame.draw.rect(screen, WHITE, (207, 100, 24, 40), DTHRU_OUTLINE)
+    pygame.draw.rect(screen, WHITE, (231, 100, 24, 40), DTHRU_OUTLINE)
+    # Box 2.
+    pygame.draw.rect(screen, WHITE, (135 + 150, 100, 120, 40), DTHRU_OUTLINE)
+    pygame.draw.rect(screen, GREEN, (135 + 150, 100, 24, 40))
+    pygame.draw.rect(screen, GREEN, (159 + 150, 100, 24, 40))
+    pygame.draw.rect(screen, YELLOW, (183 + 150, 100, 24, 40))
+    pygame.draw.rect(screen, WHITE, (207 + 150, 100, 24, 40), DTHRU_OUTLINE)
+    pygame.draw.rect(screen, WHITE, (231 + 150, 100, 24, 40), DTHRU_OUTLINE)
+    # Box 3.
+    pygame.draw.rect(screen, WHITE, (135 + 300, 100, 120, 40), DTHRU_OUTLINE)
+    pygame.draw.rect(screen, GREEN, (135 + 300, 100, 24, 40))
+    pygame.draw.rect(screen, GREEN, (159 + 300, 100, 24, 40))
+    pygame.draw.rect(screen, WHITE, (183 + 300, 100, 24, 40), DTHRU_OUTLINE)
+    pygame.draw.rect(screen, WHITE, (207 + 300, 100, 24, 40), DTHRU_OUTLINE)
+    pygame.draw.rect(screen, WHITE, (231 + 300, 100, 24, 40), DTHRU_OUTLINE)
+    # Box 4.
+    pygame.draw.rect(screen, WHITE, (135 + 450, 100, 120, 40), DTHRU_OUTLINE)
+    pygame.draw.rect(screen, GREEN, (135 + 450, 100, 24, 40))
+    pygame.draw.rect(screen, GREEN, (159 + 450, 100, 24, 40))
+    pygame.draw.rect(screen, YELLOW, (183 + 450, 100, 24, 40))
+    pygame.draw.rect(screen, RED, (207 + 450, 100, 24, 40))
+    pygame.draw.rect(screen, RED, (231 + 450, 100, 24, 40))
+    # Box 5.
+    pygame.draw.rect(screen, WHITE, (135 + 600, 100, 120, 40), DTHRU_OUTLINE)
+    pygame.draw.rect(screen, GREEN, (135 + 600, 100, 24, 40))
+    pygame.draw.rect(screen, GREEN, (159 + 600, 100, 24, 40))
+    pygame.draw.rect(screen, YELLOW, (183 + 600, 100, 24, 40))
+    pygame.draw.rect(screen, RED, (207 + 600, 100, 24, 40))
+    pygame.draw.rect(screen, WHITE, (231 + 600, 100, 24, 40), DTHRU_OUTLINE)
+    # Box 6.
+    pygame.draw.rect(screen, WHITE, (135 + 750, 100, 120, 40), DTHRU_OUTLINE)
+    pygame.draw.rect(screen, GREEN, (135 + 750, 100, 24, 40))
+    pygame.draw.rect(screen, GREEN, (159 + 750, 100, 24, 40))
+    pygame.draw.rect(screen, WHITE, (183 + 750, 100, 24, 40), DTHRU_OUTLINE)
+    pygame.draw.rect(screen, WHITE, (207 + 750, 100, 24, 40), DTHRU_OUTLINE)
+    pygame.draw.rect(screen, WHITE, (231 + 750, 100, 24, 40), DTHRU_OUTLINE)
 # UNUSED FUNCTIONS ARE BELOW
 
 def choose_gamemode(screen) -> Tuple[Tuple[int, int, int], Tuple[int, int, int], bool]:
