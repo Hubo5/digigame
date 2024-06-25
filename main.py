@@ -36,12 +36,22 @@ BUTTON2_HEIGHT: int = 56
 BUTTON2_HEIGHT_EXTENDED: int = 96
 # Size of the icons used on the second kiosk screen.
 ICON: tuple[int, int] = 50, 50
+# The window dimensions before the game officially begins.
+PREGAME_SCREEN_WIDTH = 1000
+PREGRAME_SCREEN_HEIGHT = 900
+# The dimensions of the Drive-Thru boxes.
+DTHRU_WIDTH = 200
+DTHRU_HEIGHT = 60
+DTHRU_OUTLINE = 3
 
 # PREDEFINED VARIABLES
 
-# Defining the size of the game window in pixels as constants.
-screen_width = 1000  # max 1200
-screen_height = 900  # max 700
+# The desired screen dimensions.
+screen_width = PREGAME_SCREEN_WIDTH 
+screen_height = PREGRAME_SCREEN_HEIGHT
+# The current screen dimensions.
+current_screen_width = screen_width
+current_screen_height = screen_height
 # The variable responsible for creating the game window with the parameters provided.
 screen = pygame.display.set_mode((screen_width, screen_height))
 # Sets the users name to none so they can make their own.
@@ -58,6 +68,9 @@ running: bool = True
 error: bool = False
 # This variable states what the error was in a variable so an action can be taken depending on what it is.
 error_type: str = ""
+# The positions of the boxes in the drive thru.
+dthru_box_x_positions: list[int] = [1200, 1000, 800, 600, 400, 200]
+dthru_box_y_positions: list[int] = [100, 198, 296, 394]
 
 # CURRENTLY UNUSED VARIABLES (DELETE IF NOT NEEDED)
 
@@ -98,6 +111,7 @@ main_menu_options_xs = pygame.font.Font("fonts/important button.ttf", 38)
 main_menu_options_xs2 = pygame.font.Font("fonts/important button.ttf", 34)
 main_menu_options_xs3 = pygame.font.Font("fonts/important button.ttf", 28)
 name_font = pygame.font.Font("fonts/enter name.ttf", 80)
+stats_font = pygame.font.Font("fonts/body text.ttf", 20)
 
 # This is the text displayed in the game.
 # First main menu screen
@@ -109,7 +123,7 @@ start_order_1 = start_order_font.render("START", True, DARK_YELLOW)
 start_order_2 = start_order_font_xs.render("ORDER", True, DARK_YELLOW)
 start_order_3 = start_order_font.render("HERE", True, DARK_YELLOW)
 start_order_4 = start_order_font.render("!!!", True, DARK_YELLOW)
-version = heading_font.render("VERSION: PROTO 1.1", True, RED)
+version = heading_font.render("VERSION: PROTO 2.2", True, RED)
 # Second main menu screen
 play_button = main_menu_options.render("PLAY", True, DARK_YELLOW)
 tutorial_button_1 = main_menu_options.render("FIRST", True, DARK_YELLOW)
@@ -126,6 +140,10 @@ length_incorrect = start_order_font_xs.render(
     "Name must be between 3-25 characters", True, RED
 )
 back_name_text = main_menu_options.render("BACK", True, DARK_YELLOW)
+# Ingame menu
+time_text_1 = stats_font.render("time", True, WHITE)
+time_text_2 = stats_font.render("amount", True, WHITE)
+time_text_3 = main_menu_options.render("CLOCK", True, WHITE)
 # Choosing a game mode (UNUSED)
 choose_mode_1 = title_font.render("Choose your", True, YELLOW)
 choose_mode_2 = title_font.render("gamemode.", True, YELLOW)
@@ -171,6 +189,9 @@ scoreboard_icon = pygame.image.load(
 )  # Reference: Icon by Freepik
 name_background = pygame.image.load("images/darkened_background.png")
 back_name = pygame.image.load("images/back.png")  # Reference: Icon by Freepik
+car_side = pygame.image.load("images/car_green_side.png") # Reference: Icon by Freepik
+car_forward = pygame.image.load("images/car_green.png")
+serve = pygame.image.load("images/takeaway.png") # Reference: Icon by Iapiyee
 
 # These are images that have had their size altered.
 logo_1 = pygame.transform.scale(logo, (400, 400))
@@ -181,6 +202,9 @@ first_shift_icon_sized = pygame.transform.scale(first_shift_icon, (ICON))
 settings_icon_sized = pygame.transform.scale(settings_icon, (ICON))
 scoreboard_icon_sized = pygame.transform.scale(scoreboard_icon, (ICON))
 back_name_sized = pygame.transform.scale(back_name, (ICON))
+car_side_sized = pygame.transform.scale(car_side, (85, 45))
+car_forward_sized = pygame.transform.scale(car_forward, (45, 85))
+serve_sized = pygame.transform.scale(serve, (80, 80))
 
 # FUNCTIONS
 def main_screen_now(screen) -> None:
@@ -401,7 +425,43 @@ def name_entry(screen, events) -> bool:
     # This is the users input.
     screen.blit(username_input, (30, 430))
     # Nothing is returned down here because the returns need to be within the for loop.
-
+    
+def ingame_menu(screen, screen_width, screen_height):
+    
+    # The current screen dimensions are globally accessed so the program knows what
+    # the current dimensions are.
+    global current_screen_width, current_screen_height
+    # The below code fixes a flickering bug with content onscreen.
+    # If the desired screen dimensions aren't the current dimensions:
+    if (screen_width, screen_height) != (current_screen_width, current_screen_height):
+        # The screen display is changed accordingly.
+        screen = pygame.display.set_mode((screen_width, screen_height))
+        # The current dimensions are now updated to be the same as the desired.
+        current_screen_width = screen_width
+        current_screen_height = screen_height
+    # A for loop using a list is used for code efficency.
+    # The boxes holding the cars and their stats.
+    for x in dthru_box_x_positions:
+        pygame.draw.rect(screen, WHITE, (x, 0, DTHRU_WIDTH, DTHRU_HEIGHT), DTHRU_OUTLINE)
+        screen.blit(car_side_sized, (x + 60, 10))
+        pygame.draw.rect(screen, WHITE, (x, 60, DTHRU_WIDTH, 40), DTHRU_OUTLINE)
+        screen.blit(time_text_1, (x + 80, 65))
+    # Vertical boxes.
+    for y in dthru_box_y_positions:
+        pygame.draw.rect(screen, WHITE, (0, y, DTHRU_HEIGHT, 98), DTHRU_OUTLINE)
+        screen.blit(car_forward_sized, (6, y + 5))
+        pygame.draw.rect(screen, WHITE, (60, y, 140, 98), DTHRU_OUTLINE)
+        screen.blit(time_text_1, (110, y + 10))
+        screen.blit(time_text_2, (90, y + 50))
+    # The longer serving box.
+    pygame.draw.rect(screen, WHITE, (0, 492, DTHRU_HEIGHT, DTHRU_WIDTH + 8), DTHRU_OUTLINE)
+    screen.blit(car_forward_sized, (6, 558))
+    pygame.draw.rect(screen, WHITE, (0, 492, 200, DTHRU_WIDTH + 8), DTHRU_OUTLINE)
+    screen.blit(time_text_1, (110, 502))
+    screen.blit(time_text_2, (90, 542))
+    screen.blit(serve_sized, (90, 600))
+    screen.blit(time_text_3, (20,20))
+    
 # UNUSED FUNCTIONS ARE BELOW
 
 def choose_gamemode(screen) -> Tuple[Tuple[int, int, int], Tuple[int, int, int], bool]:
@@ -531,9 +591,9 @@ def calculate_stats(day: int, day_increased: bool, original_day: int, today_stat
 
 # END OF UNUSED FUNCTIONS
 
-
 # EVENT HANDLING
-def handle_events(event, keystroke_type: str, button, desired_state: int) -> int | str:
+
+def handle_events(event, keystroke_type: str, button, desired_state: int) -> int:
     """_summary_
 
     Args:
@@ -645,8 +705,8 @@ while running:
     if current_state == ProgramState.DAY_STATS:
         current_state = part_time_day(screen)
     if state == 5:
-        current_state = None
         screen.fill(BLACK)
+        current_state = ingame_menu(screen, 1200, 700)
     # The display is constantly updated.
     pygame.display.flip()
     # The framerate is set to 30 to minimize system resources.
