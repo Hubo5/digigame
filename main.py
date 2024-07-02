@@ -44,6 +44,9 @@ PREGRAME_SCREEN_HEIGHT = 900
 DTHRU_WIDTH = 200
 DTHRU_HEIGHT = 100
 DTHRU_OUTLINE = 3
+# Size of the menu items.
+MENU_ICON: tuple[int, int] = 60, 60
+PATTY_ICON: tuple[int, int] = 80, 80
 # PREDEFINED VARIABLES
 
 # The desired screen dimensions.
@@ -77,8 +80,6 @@ dthru_box_y_positions: list[int] = [0, 100, 200, 300, 400]
 # clock in screen.
 circle_colour_1: Tuple[int, int, int] = (255, 255, 255)
 circle_colour_2: Tuple[int, int, int] = (255, 255, 255)
-# Checks what day it is, and if the game should display the day and stats.
-part_time_day: bool = False
 day: int = 1
 # A list containing each day, and the current day. As a list index begins at 0, the minus 1 ensures the correct day
 # is displayed.
@@ -111,6 +112,7 @@ main_menu_options_xs2 = pygame.font.Font("fonts/important button.ttf", 34)
 main_menu_options_xs3 = pygame.font.Font("fonts/important button.ttf", 28)
 name_font = pygame.font.Font("fonts/enter name.ttf", 80)
 stats_font = pygame.font.Font("fonts/body text.ttf", 20)
+dthru_heading_font = pygame.font.Font("fonts/important button.ttf", 25)
 
 # This is the text displayed in the game.
 # First main menu screen
@@ -145,6 +147,15 @@ time_text_2 = body_font.render("EXCESS", True, WHITE)
 time_text_3 = body_font.render("CARS", True, WHITE)
 time_text_4 = stats_font.render("time", True, WHITE)
 time_text_5 = main_menu_options.render("SERVE!", True, WHITE)
+current_order_heading = dthru_heading_font.render("CURRENT ORDER", True, YELLOW)
+# TBR (Testing only, To Be Removed)
+burger_notdone = body_font.render("burger", True, RED)
+burger_done = body_font.render("burger", True, GREEN)
+fries = body_font.render("fries", True, GREEN)
+mcbullets = body_font.render("mcbullets", True, RED)
+drink = body_font.render("hugo juice", True, GREEN)
+counter_1 = body_font.render("3/5", True, WHITE)
+
 # Choosing a game mode (UNUSED)
 choose_mode_1 = title_font.render("Choose your", True, YELLOW)
 choose_mode_2 = title_font.render("gamemode.", True, YELLOW)
@@ -192,6 +203,15 @@ name_background = pygame.image.load("images/darkened_background.png")
 back_name = pygame.image.load("images/back.png")  # Reference: Icon by Freepik
 car = pygame.image.load("images/car_green_side.png") # Reference: Icon by Freepik
 view = pygame.image.load("images/view.png") # Reference: Icon by Prosymbols
+# Menu items (all from Freepik)
+improper_slammer = pygame.image.load("images/improper slammer.png")
+colosall_hugo = pygame.image.load("images/colossal hugo.png")
+
+# Patties
+hugo_patty = pygame.image.load("images/10 to 1.png") # Reference: Icon by Erifqi Zetiawan
+slammer_patty = pygame.image.load("images/4 to 1.png") # Reference: Icon by Freepik
+angus_patty = pygame.image.load("images/angus.png") # Reference: Icon by Smashicons
+chicken_patty = pygame.image.load("images/chicken.png") # Reference: Icon by Freepik
 
 # These are images that have had their size altered.
 logo_1 = pygame.transform.scale(logo, (400, 400))
@@ -204,6 +224,12 @@ scoreboard_icon_sized = pygame.transform.scale(scoreboard_icon, (ICON))
 back_name_sized = pygame.transform.scale(back_name, (ICON))
 car_sized = pygame.transform.scale(car, (85, 45))
 view_sized = pygame.transform.scale(view, (80, 80))
+improper_slammer_sized = pygame.transform.scale(improper_slammer, (MENU_ICON))
+colosall_hugo_sized = pygame.transform.scale(colosall_hugo, (MENU_ICON))
+hugo_patty_sized = pygame.transform.scale(hugo_patty, (PATTY_ICON))
+slammer_patty_sized = pygame.transform.scale(slammer_patty, (PATTY_ICON))
+angus_patty_sized = pygame.transform.scale(angus_patty, (PATTY_ICON))
+chicken_patty_sized = pygame.transform.scale(chicken_patty, (PATTY_ICON))
 
 # FUNCTIONS
 def main_screen_now(screen) -> None:
@@ -438,9 +464,11 @@ def ingame_menu(screen, screen_width, screen_height):
         # The current dimensions are now updated to be the same as the desired.
         current_screen_width = screen_width
         current_screen_height = screen_height
-    # A for loop using a list is used for code efficency.
     # The boxes holding the cars.
     pygame.draw.rect(screen, WHITE, (0, 0, 1200, 60), DTHRU_OUTLINE)
+    
+    # ALL BELOW CODE IS TBR, ADD FOR LOOPS
+    
     # The cars themselves.
     screen.blit(car_sized, (150, 10))
     screen.blit(car_sized, (300, 10))
@@ -515,6 +543,78 @@ def ingame_menu(screen, screen_width, screen_height):
     pygame.draw.rect(screen, WHITE, (183 + 750, 100, 24, 40), DTHRU_OUTLINE)
     pygame.draw.rect(screen, WHITE, (207 + 750, 100, 24, 40), DTHRU_OUTLINE)
     pygame.draw.rect(screen, WHITE, (231 + 750, 100, 24, 40), DTHRU_OUTLINE)
+
+    # The current order box.
+    pygame.draw.rect(screen, WHITE, (0, 150, 570, 550), DTHRU_OUTLINE)
+    screen.blit(current_order_heading, (160, 150))
+    # The box containing the current order in text.
+    pygame.draw.rect(screen, WHITE, (0, 180, 570, 143), DTHRU_OUTLINE)
+    # Burger display section.
+    pygame.draw.rect(screen, RED, (0, 180, 570, 110), DTHRU_OUTLINE)
+    # Example order.
+    # For 10:1, 4:1, Angus, chicken patties on each row.
+    screen.blit(burger_notdone, (5, 175))
+    screen.blit(burger_done, (5, 200))
+    screen.blit(burger_notdone, (5, 225))
+    screen.blit(burger_done, (5, 250))
+    # Fries and nuggets.
+    pygame.draw.rect(screen, YELLOW, (0, 290, 390, 30), DTHRU_OUTLINE)
+    screen.blit(fries, (5, 285))
+    screen.blit(mcbullets, (170, 285))
+    # Hugo Juice.
+    pygame.draw.rect(screen, BLUE, (390, 290, 180, 30), DTHRU_OUTLINE)
+    screen.blit(drink, (395, 285))
+    
+    # The currently needed stock display.
+    pygame.draw.circle(screen, WHITE, (55, 370), 40, DTHRU_OUTLINE)
+    screen.blit(improper_slammer_sized, (25, 338))
+    screen.blit(counter_1, (35, 410))
+    pygame.draw.circle(screen, WHITE, (145, 370), 40, DTHRU_OUTLINE)
+    screen.blit(colosall_hugo_sized, (115, 338))
+    screen.blit(counter_1, (125, 410))
+    pygame.draw.circle(screen, WHITE, (235, 370), 40, DTHRU_OUTLINE)
+    screen.blit(improper_slammer_sized, (205, 338))
+    screen.blit(counter_1, (215, 410))
+    pygame.draw.circle(screen, WHITE, (235 + 90, 370), 40, DTHRU_OUTLINE)
+    screen.blit(improper_slammer_sized, (205 + 90, 338))
+    screen.blit(counter_1, (215 + 90, 410))
+    pygame.draw.circle(screen, WHITE, (235 + 180, 370), 40, DTHRU_OUTLINE)
+    screen.blit(improper_slammer_sized, (205 + 180, 338))
+    screen.blit(counter_1, (215 + 180, 410))
+    pygame.draw.circle(screen, WHITE, (235 + 270, 370), 40, DTHRU_OUTLINE)
+    screen.blit(improper_slammer_sized, (205 + 270, 338))
+    screen.blit(counter_1, (215 + 270, 410))
+    # Section 2.
+    pygame.draw.circle(screen, WHITE, (55, 370 + 130), 40, DTHRU_OUTLINE)
+    screen.blit(improper_slammer_sized, (25, 338 + 130))
+    screen.blit(counter_1, (35, 410 + 130))
+    pygame.draw.circle(screen, WHITE, (145, 370 + 130), 40, DTHRU_OUTLINE)
+    screen.blit(improper_slammer_sized, (115, 338 + 130))
+    screen.blit(counter_1, (125, 410 + 130))
+    pygame.draw.circle(screen, WHITE, (235, 370 + 130), 40, DTHRU_OUTLINE)
+    screen.blit(improper_slammer_sized, (205, 338 + 130))
+    screen.blit(counter_1, (215, 410 + 130))
+    pygame.draw.circle(screen, WHITE, (235 + 90, 370 + 130), 40, DTHRU_OUTLINE)
+    screen.blit(improper_slammer_sized, (205 + 90, 338 + 130))
+    screen.blit(counter_1, (215 + 90, 410 + 130))
+    pygame.draw.circle(screen, WHITE, (235 + 180, 370 + 130), 40, DTHRU_OUTLINE)
+    screen.blit(improper_slammer_sized, (205 + 180, 338 + 130))
+    screen.blit(counter_1, (215 + 180, 410 + 130))
+    pygame.draw.circle(screen, WHITE, (235 + 270, 370 + 130), 40, DTHRU_OUTLINE)
+    screen.blit(improper_slammer_sized, (205 + 270, 338 + 130))
+    screen.blit(counter_1, (215 + 270, 410 + 130))
+    
+    # The section is for patties.
+    pygame.draw.line(screen, WHITE, (0, 590), (567, 590), DTHRU_OUTLINE)
+    screen.blit(hugo_patty_sized, (30, 590))
+    screen.blit(counter_1, (50, 660))
+    screen.blit(slammer_patty_sized, (160, 590))
+    screen.blit(counter_1, (180, 660))
+    screen.blit(angus_patty_sized, (290, 590))
+    screen.blit(counter_1, (310, 660))
+    screen.blit(chicken_patty_sized, (420, 590))
+    screen.blit(counter_1, (430, 660))
+
 # UNUSED FUNCTIONS ARE BELOW
 
 def choose_gamemode(screen) -> Tuple[Tuple[int, int, int], Tuple[int, int, int], bool]:
