@@ -155,6 +155,7 @@ fries = body_font.render("fries", True, GREEN)
 mcbullets = body_font.render("mcbullets", True, RED)
 drink = body_font.render("hugo juice", True, GREEN)
 counter_1 = body_font.render("3/5", True, WHITE)
+burger_name = body_font.render("Radioactive McRooster")
 
 # Choosing a game mode (UNUSED)
 choose_mode_1 = title_font.render("Choose your", True, YELLOW)
@@ -567,6 +568,7 @@ def ingame_menu(screen, screen_width, screen_height):
     
     # The currently needed stock display.
     pygame.draw.rect(screen, RED, (15, 330, 160, 60), DTHRU_OUTLINE)
+    screen.blit(burger_name, (15, 330))
 
     # Section 2.
     pygame.draw.circle(screen, WHITE, (55, 370 + 130), 40, DTHRU_OUTLINE)
