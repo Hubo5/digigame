@@ -577,7 +577,6 @@ def ingame_menu(screen, screen_width, screen_height):
     pygame.draw.rect(screen, RED, (375, 330, 160, 60), DTHRU_OUTLINE)
     screen.blit(burger_name, (386, 330))
     screen.blit(counter_1, (435, 350))
-
     # Section 2.
     pygame.draw.rect(screen, RED, (35, 410, 160, 60), DTHRU_OUTLINE)
     screen.blit(burger_name, (41, 410))
@@ -588,6 +587,16 @@ def ingame_menu(screen, screen_width, screen_height):
     pygame.draw.rect(screen, RED, (375, 410, 160, 60), DTHRU_OUTLINE)
     screen.blit(burger_name, (386, 410))
     screen.blit(counter_1, (435, 430))
+    # Section 3.
+    pygame.draw.rect(screen, RED, (35, 490, 160, 60), DTHRU_OUTLINE)
+    screen.blit(burger_name, (41, 490))
+    screen.blit(counter_1, (95, 510))
+    pygame.draw.rect(screen, RED, (205, 490, 160, 60), DTHRU_OUTLINE)
+    screen.blit(burger_name, (211, 490))
+    screen.blit(counter_1, (265, 510))
+    pygame.draw.rect(screen, RED, (375, 490, 160, 60), DTHRU_OUTLINE)
+    screen.blit(burger_name, (386, 490))
+    screen.blit(counter_1, (435, 510))
 
     # The section is for patties.
     pygame.draw.line(screen, WHITE, (0, 590), (567, 590), DTHRU_OUTLINE)
