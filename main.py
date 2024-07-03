@@ -566,7 +566,7 @@ def ingame_menu(screen, screen_width, screen_height):
     screen.blit(drink, (395, 285))
     
     # The currently needed stock display.
-    pygame.draw.rect(screen, RED, (15, 330, 130, 60), DTHRU_OUTLINE)
+    pygame.draw.rect(screen, RED, (15, 330, 160, 60), DTHRU_OUTLINE)
 
     # Section 2.
     pygame.draw.circle(screen, WHITE, (55, 370 + 130), 40, DTHRU_OUTLINE)
