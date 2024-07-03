@@ -570,6 +570,7 @@ def ingame_menu(screen, screen_width, screen_height):
     # The currently needed stock display.
     pygame.draw.rect(screen, RED, (15, 330, 160, 60), DTHRU_OUTLINE)
     screen.blit(burger_name, (21, 330))
+    screen.blit(counter_1, (75, 350))
 
     # Section 2.
     pygame.draw.circle(screen, WHITE, (55, 370 + 130), 40, DTHRU_OUTLINE)
