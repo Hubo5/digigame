@@ -566,24 +566,8 @@ def ingame_menu(screen, screen_width, screen_height):
     screen.blit(drink, (395, 285))
     
     # The currently needed stock display.
-    pygame.draw.circle(screen, WHITE, (55, 370), 40, DTHRU_OUTLINE)
-    screen.blit(improper_slammer_sized, (25, 338))
-    screen.blit(counter_1, (35, 410))
-    pygame.draw.circle(screen, WHITE, (145, 370), 40, DTHRU_OUTLINE)
-    screen.blit(colosall_hugo_sized, (115, 338))
-    screen.blit(counter_1, (125, 410))
-    pygame.draw.circle(screen, WHITE, (235, 370), 40, DTHRU_OUTLINE)
-    screen.blit(improper_slammer_sized, (205, 338))
-    screen.blit(counter_1, (215, 410))
-    pygame.draw.circle(screen, WHITE, (235 + 90, 370), 40, DTHRU_OUTLINE)
-    screen.blit(improper_slammer_sized, (205 + 90, 338))
-    screen.blit(counter_1, (215 + 90, 410))
-    pygame.draw.circle(screen, WHITE, (235 + 180, 370), 40, DTHRU_OUTLINE)
-    screen.blit(improper_slammer_sized, (205 + 180, 338))
-    screen.blit(counter_1, (215 + 180, 410))
-    pygame.draw.circle(screen, WHITE, (235 + 270, 370), 40, DTHRU_OUTLINE)
-    screen.blit(improper_slammer_sized, (205 + 270, 338))
-    screen.blit(counter_1, (215 + 270, 410))
+    pygame.draw.rect(screen, RED, (25, 350, 100, 40), DTHRU_OUTLINE)
+
     # Section 2.
     pygame.draw.circle(screen, WHITE, (55, 370 + 130), 40, DTHRU_OUTLINE)
     screen.blit(improper_slammer_sized, (25, 338 + 130))
