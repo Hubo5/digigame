@@ -161,6 +161,7 @@ counter_2 = body_font.render("7/7", True, WHITE)
 burger_name = burger_name_font.render("Radioactive McRooster", True, WHITE)
 burger_name2 = burger_name_font.render("5/4 Slammer", True, WHITE)
 patty_name = patty_name_font.render("10:1", True, WHITE)
+patty_name2 = patty_name_font.render("Chicken", True, WHITE)
 
 # Choosing a game mode (UNUSED)
 choose_mode_1 = title_font.render("Choose your", True, YELLOW)
@@ -608,6 +609,8 @@ def ingame_menu(screen, screen_width, screen_height):
     screen.blit(patty_name, (35, 605))
     screen.blit(counter_1, (35, 640))
     pygame.draw.rect(screen, GREEN, (115, 605, 160, 80), DTHRU_OUTLINE)
+    screen.blit(patty_name2, (150, 605))
+    screen.blit(counter_2, (175, 640))
 
 
 # UNUSED FUNCTIONS ARE BELOW
