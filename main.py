@@ -614,6 +614,9 @@ def ingame_menu(screen, screen_width, screen_height):
     pygame.draw.rect(screen, RED, (295, 605, 160, 80), DTHRU_OUTLINE)
     screen.blit(patty_name2, (330, 605))
     screen.blit(counter_1, (355, 640))
+    pygame.draw.rect(screen, RED, (475, 605, 80, 80), DTHRU_OUTLINE)
+    screen.blit(patty_name, (495, 605))
+    screen.blit(counter_1, (495, 640))
 
 
 # UNUSED FUNCTIONS ARE BELOW
