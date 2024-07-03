@@ -155,7 +155,7 @@ fries = body_font.render("fries", True, GREEN)
 mcbullets = body_font.render("mcbullets", True, RED)
 drink = body_font.render("hugo juice", True, GREEN)
 counter_1 = body_font.render("3/5", True, WHITE)
-burger_name = body_font.render("Radioactive McRooster")
+burger_name = body_font.render("Radioactive McRooster", True, WHITE)
 
 # Choosing a game mode (UNUSED)
 choose_mode_1 = title_font.render("Choose your", True, YELLOW)
