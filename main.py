@@ -602,14 +602,8 @@ def ingame_menu(screen, screen_width, screen_height):
 
     # The section is for patties.
     pygame.draw.line(screen, WHITE, (0, 590), (567, 590), DTHRU_OUTLINE)
-    screen.blit(hugo_patty_sized, (30, 590))
-    screen.blit(counter_1, (50, 660))
-    screen.blit(slammer_patty_sized, (160, 590))
-    screen.blit(counter_1, (180, 660))
-    screen.blit(angus_patty_sized, (290, 590))
-    screen.blit(counter_1, (310, 660))
-    screen.blit(chicken_patty_sized, (420, 590))
-    screen.blit(counter_1, (430, 660))
+    pygame.draw.rect(screen, RED, (15, 610, 80, 60), DTHRU_OUTLINE)
+
 
 # UNUSED FUNCTIONS ARE BELOW
 
