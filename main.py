@@ -113,6 +113,7 @@ main_menu_options_xs3 = pygame.font.Font("fonts/important button.ttf", 28)
 name_font = pygame.font.Font("fonts/enter name.ttf", 80)
 stats_font = pygame.font.Font("fonts/body text.ttf", 20)
 dthru_heading_font = pygame.font.Font("fonts/important button.ttf", 25)
+burger_name_font = pygame.font.Font("fonts/body text.ttf", 14)
 
 # This is the text displayed in the game.
 # First main menu screen
@@ -155,7 +156,7 @@ fries = body_font.render("fries", True, GREEN)
 mcbullets = body_font.render("mcbullets", True, RED)
 drink = body_font.render("hugo juice", True, GREEN)
 counter_1 = body_font.render("3/5", True, WHITE)
-burger_name = body_font.render("Radioactive McRooster", True, WHITE)
+burger_name = burger_name_font.render("Radioactive McRooster", True, WHITE)
 
 # Choosing a game mode (UNUSED)
 choose_mode_1 = title_font.render("Choose your", True, YELLOW)
@@ -568,7 +569,7 @@ def ingame_menu(screen, screen_width, screen_height):
     
     # The currently needed stock display.
     pygame.draw.rect(screen, RED, (15, 330, 160, 60), DTHRU_OUTLINE)
-    screen.blit(burger_name, (15, 330))
+    screen.blit(burger_name, (21, 330))
 
     # Section 2.
     pygame.draw.circle(screen, WHITE, (55, 370 + 130), 40, DTHRU_OUTLINE)
