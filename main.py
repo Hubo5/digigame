@@ -7,8 +7,8 @@ pygame.init()
 
 # PROGRAM STATES
 
-# These define what part of the program the user is up to, used for calling the correct function
-# corresponding to the program state.
+# These define what part of the program the user is up to, used for calling
+# the correct function corresponding to the program state.
 class ProgramState:
     GAME_OPEN: int = 0
     MAIN_MENU: int = 1
