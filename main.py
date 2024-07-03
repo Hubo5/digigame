@@ -158,7 +158,7 @@ drink = body_font.render("hugo juice", True, GREEN)
 counter_1 = body_font.render("3/5", True, WHITE)
 counter_2 = body_font.render("7/7", True, WHITE)
 burger_name = burger_name_font.render("Radioactive McRooster", True, WHITE)
-burger_name2 = body_font.render("5/4 Slammer", True, WHITE)
+burger_name2 = burger_name_font.render("5/4 Slammer", True, WHITE)
 
 # Choosing a game mode (UNUSED)
 choose_mode_1 = title_font.render("Choose your", True, YELLOW)
