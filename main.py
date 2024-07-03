@@ -114,6 +114,7 @@ name_font = pygame.font.Font("fonts/enter name.ttf", 80)
 stats_font = pygame.font.Font("fonts/body text.ttf", 20)
 dthru_heading_font = pygame.font.Font("fonts/important button.ttf", 25)
 burger_name_font = pygame.font.Font("fonts/body text.ttf", 14)
+patty_name_font = pygame.font.Font("fonts/body text.ttf", 25)
 
 # This is the text displayed in the game.
 # First main menu screen
@@ -159,7 +160,7 @@ counter_1 = body_font.render("3/5", True, WHITE)
 counter_2 = body_font.render("7/7", True, WHITE)
 burger_name = burger_name_font.render("Radioactive McRooster", True, WHITE)
 burger_name2 = burger_name_font.render("5/4 Slammer", True, WHITE)
-patty_name = burger_name_font.render("10:1", True, WHITE)
+patty_name = patty_name_font.render("10:1", True, WHITE)
 
 # Choosing a game mode (UNUSED)
 choose_mode_1 = title_font.render("Choose your", True, YELLOW)
@@ -603,8 +604,9 @@ def ingame_menu(screen, screen_width, screen_height):
 
     # The section is for patties.
     pygame.draw.line(screen, WHITE, (0, 590), (567, 590), DTHRU_OUTLINE)
-    pygame.draw.rect(screen, RED, (15, 600, 80, 80), DTHRU_OUTLINE)
-    screen.blit(patty_name, (20, 610))
+    pygame.draw.rect(screen, RED, (15, 605, 80, 80), DTHRU_OUTLINE)
+    screen.blit(patty_name, (35, 605))
+    screen.blit(counter_1, (35, 640))
 
 
 # UNUSED FUNCTIONS ARE BELOW
