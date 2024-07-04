@@ -72,7 +72,7 @@ error: bool = False
 # This variable states what the error was in a variable so an action can be taken depending on what it is.
 error_type: str = ""
 # The positions of the boxes in the drive thru.
-dthru_box_y_positions: list[int] = [0, 100, 200, 300, 400]
+dthru_box_x_positions: list[int] = [120, 270, 420, 570, 720, 870]
 
 # CURRENTLY UNUSED VARIABLES (DELETE IF NOT NEEDED)
 
@@ -488,12 +488,8 @@ def ingame_menu(screen, screen_width, screen_height):
     screen.blit(time_text_2, (18, 60))
     screen.blit(time_text_3, (30, 100))
     # The boxes for each section on the drive thru.
-    pygame.draw.rect(screen, WHITE, (120, 0, 150, 150), DTHRU_OUTLINE)
-    pygame.draw.rect(screen, WHITE, (270, 0, 150, 150), DTHRU_OUTLINE)
-    pygame.draw.rect(screen, WHITE, (420, 0, 150, 150), DTHRU_OUTLINE)
-    pygame.draw.rect(screen, WHITE, (570, 0, 150, 150), DTHRU_OUTLINE)
-    pygame.draw.rect(screen, WHITE, (720, 0, 150, 150), DTHRU_OUTLINE)
-    pygame.draw.rect(screen, WHITE, (870, 0, 150, 150), DTHRU_OUTLINE)
+    for x in dthru_box_x_positions:
+        pygame.draw.rect(screen, WHITE, (x, 0, 150, 150), DTHRU_OUTLINE)
     pygame.draw.rect(screen, WHITE, (1020, 0, 180, 150), DTHRU_OUTLINE)
     # The text for the boxes in the drive thru.
     screen.blit(time_text_4, (175, 60))
