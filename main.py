@@ -793,6 +793,15 @@ def display_menu_items(
     max_index: int,
     display_type: str,
 ):
+    """Displays the menu images and text for the total stock.
+
+    Args:
+        x_positions (list[int]): The x positions of the items to draw.
+        y_positions (list[int]): The y positions of the items to draw.
+        initial_index (int): The item the function should begin on the dict/list.
+        max_index (int): The item the function should end the cycle on the dict/list.
+        display_type (str): Whether the item is an image or piece of text to indicate how to place it.
+    """
     # The menu in text and image form need to be accessed so the function knows what to display using indexing.
     global menu, menu_images
     # A nested for loop is used to display everything in a grid format.
