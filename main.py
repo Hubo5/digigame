@@ -16,6 +16,9 @@ class ProgramState:
     CHOOSE_GAMEMODE: int = 3
     DAY_STATS: int = 4
     GAME_MENU: int = 5
+    DRINKS: int = 6
+
+
 # The state is initially set to the first phase so the program starts.
 current_state: int = ProgramState.GAME_OPEN
 
@@ -29,6 +32,7 @@ RED = (255, 0, 0)
 WHITE = (255, 255, 255)
 BLUE = (8, 98, 168)
 GREEN = (80, 200, 120)
+ORANGE = (255, 127, 0)
 # Outline for most of the boxes displayed in game.
 OUTLINE_WIDTH: int = 5
 # Width and height of boxes on the second kiosk screen.
@@ -47,6 +51,13 @@ DTHRU_OUTLINE = 3
 # Size of the menu items.
 MENU_ICON: tuple[int, int] = 60, 60
 PATTY_ICON: tuple[int, int] = 65, 65
+# For the total stock display.
+TOTAL_PATTY_ICON: tuple[int, int] = 55, 55
+TOTAL_MENU_ICON: tuple[int, int] = 50, 50
+# FND: Fries, nuggets, drinks
+TOTAL_FND_ICON: tuple[int, int] = 70, 70
+NAVIGATION_ICON: tuple[int, int] = 40, 40
+XS_NAVIGATION_ICON: tuple[int, int] = 30, 30
 # PREDEFINED VARIABLES
 
 # The desired screen dimensions.
@@ -73,6 +84,30 @@ error: bool = False
 error_type: str = ""
 # The positions of the boxes in the drive thru.
 dthru_box_x_positions: list[int] = [120, 270, 420, 570, 720, 870]
+dthru_text_x_positions: list[int] = [175, 325, 475, 625, 775, 925, 1090]
+# The positions of the circles for the total stock.
+total_stock_circle_x_positions: list[int] = [640, 740, 840, 940]
+total_stock_circle_y_positions: list[int] = [230, 410]
+# A dictionary of the menu items.
+total_stock_items: dict[str, int] = {
+    "Big Hugo": 0,
+    "Colossal H": 0,
+    "5/4 Slammer": 0,
+    "2 5/4 Slammer": 0,
+    "Almighty. F": 0,
+    "Keanu Krunch": 0,
+    "Radioactive. McR": 0,
+    "Chicken Little": 0,
+    "10:1": 0,
+    "4:1": 0,
+    "Angus": 0,
+    "Chicken": 0,
+    "Fries": 0,
+    "McBullets": 0,
+    "Hugo Juice": 0,
+}
+# All of the menu items with their values put into a list.
+menu = list(total_stock_items.items())
 
 # CURRENTLY UNUSED VARIABLES (DELETE IF NOT NEEDED)
 
@@ -115,6 +150,10 @@ stats_font = pygame.font.Font("fonts/body text.ttf", 20)
 dthru_heading_font = pygame.font.Font("fonts/important button.ttf", 25)
 quantity_font = pygame.font.Font("fonts/body text.ttf", 20)
 burger_name_font = pygame.font.Font("fonts/body text.ttf", 14)
+total_stock_name_font = pygame.font.Font("fonts/body text.ttf", 12)
+stock_required_font = pygame.font.Font("fonts/important button.ttf", 19)
+navigation_font = pygame.font.Font("fonts/important button.ttf", 18)
+number_font = pygame.font.Font("fonts/important button.ttf", 45)
 
 # This is the text displayed in the game.
 # First main menu screen
@@ -150,16 +189,29 @@ time_text_3 = body_font.render("CARS", True, WHITE)
 time_text_4 = stats_font.render("time", True, WHITE)
 time_text_5 = main_menu_options.render("SERVE!", True, WHITE)
 current_order_heading = dthru_heading_font.render("CURRENT ORDER", True, YELLOW)
+total_stock_heading = dthru_heading_font.render("TOTAL STOCK", True, YELLOW)
+navigation_heading = dthru_heading_font.render("NAVIGATION", True, YELLOW)
+current_car_heading = navigation_font.render("Current car time:", True, WHITE)
+average_car_heading = navigation_font.render("Average: ", True, WHITE)
+money_heading = navigation_font.render("Money earnt: ", True, WHITE)
+time_heading = navigation_font.render("Time left: ", True, WHITE)
 # TBR (Testing only, To Be Removed)
-burger_notdone = body_font.render("burger", True, RED)
-burger_done = body_font.render("burger", True, GREEN)
-fries = body_font.render("fries", True, GREEN)
-mcbullets = body_font.render("mcbullets", True, RED)
-drink = body_font.render("hugo juice", True, GREEN)
+burger_notdone_text = body_font.render("burger", True, RED)
+burger_done_text = body_font.render("burger", True, GREEN)
+fries_text = body_font.render("fries", True, GREEN)
+mcbullets_text = body_font.render("mcbullets", True, RED)
+drink_text = body_font.render("hugo juice", True, GREEN)
 counter_1 = quantity_font.render("3/5", True, WHITE)
 burger_name = burger_name_font.render("Chicken Little", True, WHITE)
 patty_name = burger_name_font.render("10:1", True, WHITE)
 patty_name2 = burger_name_font.render("Chicken", True, WHITE)
+current_car_time = number_font.render("0:00", True, WHITE)
+average_car_time = number_font.render("0:00", True, WHITE)
+money_earnt = number_font.render("$0", True, WHITE)
+time_left = number_font.render("6:00", True, WHITE)
+grill_heading = burger_name_font.render("Grill", True, WHITE)
+drinks_heading = burger_name_font.render("Drinks", True, WHITE)
+bfm_heading = burger_name_font.render("BFM", True, WHITE)
 # Choosing a game mode (UNUSED)
 choose_mode_1 = title_font.render("Choose your", True, YELLOW)
 choose_mode_2 = title_font.render("gamemode.", True, YELLOW)
@@ -207,17 +259,35 @@ name_background = pygame.image.load("images/darkened_background.png")
 back_name = pygame.image.load("images/back.png")  # Reference: Icon by Freepik
 car = pygame.image.load("images/car_green_side.png") # Reference: Icon by Freepik
 view = pygame.image.load("images/view.png") # Reference: Icon by Prosymbols
+
 # Menu items (all from Freepik)
-improper_slammer = pygame.image.load("images/improper slammer.png")
-colosall_hugo = pygame.image.load("images/colossal hugo.png")
+big_hugo = pygame.image.load("images/menu items/big hugo.png")
+colossal_h = pygame.image.load("images/menu items/colossal h.png")
+improper_slammer = pygame.image.load("images/menu items/improper slammer.png")
+double_improper_slammer = pygame.image.load("images/menu items/double improper.png")
+almighty_florida = pygame.image.load("images/menu items/florida.png")
+keanu_krunch = pygame.image.load("images/menu items/keanu krunch.png")
+radioactive_mcr = pygame.image.load("images/menu items/radioactive.png")
+chicken_little = pygame.image.load("images/menu items/lil chicken.png")
+mcbullets = pygame.image.load("images/menu items/mcbullets.png")
+fries = pygame.image.load("images/menu items/fries.png")
+juice = pygame.image.load("images/menu items/juice.png")
 
 # Patties
-hugo_patty = pygame.image.load("images/10 to 1.png") # Reference: Icon by Erifqi Zetiawan
-slammer_patty = pygame.image.load("images/4 to 1.png") # Reference: Icon by Freepik
-angus_patty = pygame.image.load("images/angus.png") # Reference: Icon by Smashicons
-chicken_patty = pygame.image.load("images/chicken.png") # Reference: Icon by Freepik
+hugo_patty = pygame.image.load(
+    "images/menu items/10 to 1.png"
+)  # Reference: Icon by Erifqi Zetiawan
+slammer_patty = pygame.image.load(
+    "images/menu items/4 to 1.png"
+)  # Reference: Icon by Freepik
+angus_patty = pygame.image.load(
+    "images/menu items/angus.png"
+)  # Reference: Icon by Smashicons
+chicken_patty = pygame.image.load(
+    "images/menu items/chicken.png"
+)  # Reference: Icon by Freepik
 
-# These are images that have had their size altered.
+# These are images that have had their size altered. "t" means for the total stock display.
 logo_1 = pygame.transform.scale(logo, (400, 400))
 logo_2 = pygame.transform.scale(logo, (51, 51))
 logo_3 = pygame.transform.scale(logo, (80, 80))
@@ -228,12 +298,53 @@ scoreboard_icon_sized = pygame.transform.scale(scoreboard_icon, (ICON))
 back_name_sized = pygame.transform.scale(back_name, (ICON))
 car_sized = pygame.transform.scale(car, (85, 45))
 view_sized = pygame.transform.scale(view, (80, 80))
+
 improper_slammer_sized = pygame.transform.scale(improper_slammer, (MENU_ICON))
-colosall_hugo_sized = pygame.transform.scale(colosall_hugo, (MENU_ICON))
+mcbullets_sized = pygame.transform.scale(mcbullets, (MENU_ICON))
+big_hugo_sized_t = pygame.transform.scale(big_hugo, (TOTAL_MENU_ICON))
+colossal_h_sized_t = pygame.transform.scale(colossal_h, (TOTAL_MENU_ICON))
+improper_slammer_sized_t = pygame.transform.scale(improper_slammer, (TOTAL_MENU_ICON))
+double_improper_slammer_sized_t = pygame.transform.scale(
+    double_improper_slammer, (TOTAL_MENU_ICON)
+)
+almighty_florida_sized_t = pygame.transform.scale(almighty_florida, (TOTAL_MENU_ICON))
+keanu_krunch_sized_t = pygame.transform.scale(keanu_krunch, (TOTAL_MENU_ICON))
+radioactive_mcr_sized_t = pygame.transform.scale(radioactive_mcr, (TOTAL_MENU_ICON))
+chicken_little_sized_t = pygame.transform.scale(chicken_little, (TOTAL_MENU_ICON))
+fries_sized_t = pygame.transform.scale(fries, (TOTAL_FND_ICON))
+mcbullets_sized_t = pygame.transform.scale(mcbullets, (TOTAL_FND_ICON))
+juice_sized_t = pygame.transform.scale(juice, (TOTAL_FND_ICON))
 hugo_patty_sized = pygame.transform.scale(hugo_patty, (PATTY_ICON))
+hugo_patty_sized_t = pygame.transform.scale(hugo_patty, (TOTAL_PATTY_ICON))
 slammer_patty_sized = pygame.transform.scale(slammer_patty, (PATTY_ICON))
+slammer_patty_sized_t = pygame.transform.scale(slammer_patty, (TOTAL_PATTY_ICON))
 angus_patty_sized = pygame.transform.scale(angus_patty, (PATTY_ICON))
+angus_patty_sized_t = pygame.transform.scale(angus_patty, (TOTAL_PATTY_ICON))
 chicken_patty_sized = pygame.transform.scale(chicken_patty, (PATTY_ICON))
+chicken_patty_sized_t = pygame.transform.scale(chicken_patty, (TOTAL_PATTY_ICON))
+grill_icon = pygame.transform.scale(big_hugo, (NAVIGATION_ICON))
+drinks_icon = pygame.transform.scale(juice, (NAVIGATION_ICON))
+fries_icon = pygame.transform.scale(fries, (XS_NAVIGATION_ICON))
+nuggets_icon = pygame.transform.scale(mcbullets, (XS_NAVIGATION_ICON))
+# This list needs to be defined down here where the images have been defined.
+menu_images: list = [
+    big_hugo_sized_t,
+    colossal_h_sized_t,
+    improper_slammer_sized_t,
+    double_improper_slammer_sized_t,
+    almighty_florida_sized_t,
+    keanu_krunch_sized_t,
+    radioactive_mcr_sized_t,
+    chicken_little_sized_t,
+    hugo_patty_sized_t,
+    slammer_patty_sized_t,
+    angus_patty_sized_t,
+    chicken_patty_sized_t,
+    fries_sized_t,
+    mcbullets_sized_t,
+    juice_sized_t,
+]
+
 
 # FUNCTIONS
 def main_screen_now(screen) -> None:
@@ -404,9 +515,8 @@ def name_entry(screen, events) -> bool:
     # Text for the back button, drawn after so the button doesn't cover it,
     screen.blit(back_name_sized, (375, 805))
     screen.blit(back_name_text, (440, 800))
-    
-    # In order to be continously updated, the pygame event handling for loop must be 
-    # used.
+
+    # In order to be continously updated, the pygame event handling for loop must be used.
     for event in events:
         # If the user types, the event handling function handles the inputs appropiately.
         user_name = handle_events(event, "type", None, None)
@@ -455,11 +565,14 @@ def name_entry(screen, events) -> bool:
     screen.blit(username_input, (30, 430))
     # Nothing is returned down here because the returns need to be within the for loop.
     
-def ingame_menu(screen, screen_width, screen_height):
-    
+def ingame_menu(screen, screen_width, screen_height) -> bool:
     # The current screen dimensions are globally accessed so the program knows what
     # the current dimensions are.
-    global current_screen_width, current_screen_height
+    global \
+        current_screen_width, \
+        current_screen_height, \
+        total_stock_circle_x_positions, \
+        total_stock_circle_y_positions
     # The below code fixes a flickering bug with content onscreen.
     # If the desired screen dimensions aren't the current dimensions:
     if (screen_width, screen_height) != (current_screen_width, current_screen_height):
@@ -492,13 +605,8 @@ def ingame_menu(screen, screen_width, screen_height):
         pygame.draw.rect(screen, WHITE, (x, 0, 150, 150), DTHRU_OUTLINE)
     pygame.draw.rect(screen, WHITE, (1020, 0, 180, 150), DTHRU_OUTLINE)
     # The text for the boxes in the drive thru.
-    screen.blit(time_text_4, (175, 60))
-    screen.blit(time_text_4, (325, 60))
-    screen.blit(time_text_4, (475, 60))
-    screen.blit(time_text_4, (625, 60))
-    screen.blit(time_text_4, (775, 60))
-    screen.blit(time_text_4, (925, 60))
-    screen.blit(time_text_4, (1090, 60))
+    for x in dthru_text_x_positions:
+        screen.blit(time_text_4, (x, 60))
     screen.blit(time_text_5, (1020, 90))
     # The box containing how big the order is.
     # Box 1.
@@ -553,25 +661,25 @@ def ingame_menu(screen, screen_width, screen_height):
     pygame.draw.rect(screen, RED, (0, 180, 570, 110), DTHRU_OUTLINE)
     # Example order.
     # For 10:1, 4:1, Angus, chicken patties on each row.
-    screen.blit(burger_notdone, (5, 175))
-    screen.blit(burger_done, (5, 200))
-    screen.blit(burger_notdone, (5, 225))
-    screen.blit(burger_done, (5, 250))
+    screen.blit(burger_notdone_text, (5, 175))
+    screen.blit(burger_done_text, (5, 200))
+    screen.blit(burger_notdone_text, (5, 225))
+    screen.blit(burger_done_text, (5, 250))
     # Fries and nuggets.
     pygame.draw.rect(screen, YELLOW, (0, 290, 390, 30), DTHRU_OUTLINE)
-    screen.blit(fries, (5, 285))
-    screen.blit(mcbullets, (170, 285))
+    screen.blit(fries_text, (5, 285))
+    screen.blit(mcbullets_text, (170, 285))
     # Hugo Juice.
     pygame.draw.rect(screen, BLUE, (390, 290, 180, 30), DTHRU_OUTLINE)
-    screen.blit(drink, (395, 285))
-    
+    screen.blit(drink_text, (395, 285))
+
     # The currently needed stock display.
     pygame.draw.circle(screen, WHITE, (80, 370), 40, DTHRU_OUTLINE)
     screen.blit(improper_slammer_sized, (50, 338))
     screen.blit(burger_name, (40, 410))
     screen.blit(counter_1, (65, 430))
     pygame.draw.circle(screen, WHITE, (180, 370), 40, DTHRU_OUTLINE)
-    screen.blit(colosall_hugo_sized, (150, 338))
+    screen.blit(mcbullets_sized, (150, 338))
     screen.blit(burger_name, (140, 410))
     screen.blit(counter_1, (165, 430))
     pygame.draw.circle(screen, WHITE, (280, 370), 40, DTHRU_OUTLINE)
@@ -592,7 +700,7 @@ def ingame_menu(screen, screen_width, screen_height):
     screen.blit(burger_name, (40, 540))
     screen.blit(counter_1, (65, 560))
     pygame.draw.circle(screen, WHITE, (180, 500), 40, DTHRU_OUTLINE)
-    screen.blit(colosall_hugo_sized, (150, 468))
+    screen.blit(mcbullets_sized, (150, 468))
     screen.blit(burger_name, (140, 540))
     screen.blit(counter_1, (165, 560))
     pygame.draw.circle(screen, WHITE, (280, 500), 40, DTHRU_OUTLINE)
@@ -622,6 +730,108 @@ def ingame_menu(screen, screen_width, screen_height):
     screen.blit(chicken_patty_sized, (440, 590))
     screen.blit(patty_name2, (436, 649))
     screen.blit(counter_1, (448, 670))
+
+    # This is the total stock section.
+    pygame.draw.rect(screen, WHITE, (570, 150, 450, 550), DTHRU_OUTLINE)
+    # The box containing the section name.
+    pygame.draw.line(screen, WHITE, (570, 180), (1020, 180), DTHRU_OUTLINE)
+    screen.blit(total_stock_heading, (700, 150))
+    # A for loop drawing all of the circles for the total stock.
+    for y in total_stock_circle_y_positions:
+        for x in total_stock_circle_x_positions:
+            pygame.draw.circle(screen, WHITE, (x, y), 35, DTHRU_OUTLINE)
+    # A function is called used to increase efficency.
+    # Text for all the circles.
+    display_menu_items([615, 715, 815, 915], [265, 445], 0, 7, "text")
+    # Text for all the patties.
+    display_menu_items([665, 865], [350, 530], 8, 11, "text")
+    # Patty images.
+    display_menu_items([662, 862], [300, 480], 8, 11, "image")
+    # Burger images.
+    display_menu_items([615, 715, 815, 915], [205, 385], 0, 7, "image")
+    # Fries, nuggets and drinks images.
+    display_menu_items([600, 760, 920], [570], 12, 14, "image")
+    # FNG text.
+    display_menu_items([612, 772, 932], [640], 12, 14, "text")
+
+    # This is the navigation section.
+    pygame.draw.rect(screen, WHITE, (1020, 150, 180, 550), DTHRU_OUTLINE)
+    pygame.draw.line(screen, WHITE, (1020, 180), (1200, 180), DTHRU_OUTLINE)
+    screen.blit(navigation_heading, (1023, 150))
+    screen.blit(current_car_heading, (1030, 190))
+    screen.blit(current_car_time, (1055, 210))
+    screen.blit(average_car_heading, (1070, 270))
+    screen.blit(average_car_time, (1055, 290))
+    screen.blit(money_heading, (1050, 350))
+    screen.blit(money_earnt, (1055, 370))
+    screen.blit(time_heading, (1065, 430))
+    screen.blit(time_left, (1055, 450))
+    # Buttons for navigating menus.
+    grill = pygame.draw.rect(screen, RED, (1040, 510, 55, 55))
+    pygame.draw.rect(screen, WHITE, (1040, 510, 55, 55), 4)
+    drinks = pygame.draw.rect(screen, BLUE, (1125, 510, 55, 55))
+    pygame.draw.rect(screen, WHITE, (1125, 510, 55, 55), 4)
+    bfm = pygame.draw.rect(screen, DARK_YELLOW, (1040, 590, 140, 35))
+    pygame.draw.rect(screen, WHITE, (1040, 590, 140, 35), 4)
+    # Icons.
+    screen.blit(grill_icon, (1047, 518))
+    screen.blit(drinks_icon, (1132, 518))
+    screen.blit(fries_icon, (1075, 590))
+    screen.blit(nuggets_icon, (1110, 590))
+    # Button descriptions.
+    screen.blit(grill_heading, (1055, 565))
+    screen.blit(drinks_heading, (1132, 565))
+    screen.blit(bfm_heading, (1097, 620))
+    current_event = handle_events(event, "click", drinks, ProgramState.DRINKS)
+    return current_event
+
+
+def display_menu_items(
+    x_positions: list[int],
+    y_positions: list[int],
+    initial_index: int,
+    max_index: int,
+    display_type: str,
+):
+    # The menu in text and image form need to be accessed so the function knows what to display using indexing.
+    global menu, menu_images
+    # A nested for loop is used to display everything in a grid format.
+    for y in y_positions:
+        for x in x_positions:
+            # The function keeps cycling until it reaches the specified end.
+            if initial_index <= max_index:
+                # If the function is displaying text:
+                if display_type == "text":
+                    # The quantity is set.
+                    quantity_x: int = x + 21
+                    quantity_y: int = y + 20
+                    # The item name and quantity is taken from the dict with the provided index.
+                    item_name, item_quantity = menu[initial_index]
+                    # A variable assigned to the indexed name and quantity is made with the appropiate font.
+                    item_name_text = total_stock_name_font.render(
+                        item_name, True, WHITE
+                    )
+                    item_quantity_text = stock_required_font.render(
+                        str(item_quantity), True, WHITE
+                    )
+                    # Its width is then calculated so it can be centered correctly. 49 is the length of the shortest item, so it is used as a baseline.
+                    item_width = (item_name_text.get_width() - 49) / 2
+                    quantity_width = (item_quantity_text.get_width() - 8) / 2
+                    # The item is produced on screen with its centering.
+                    screen.blit(item_name_text, (x - item_width, y))
+                    screen.blit(
+                        item_quantity_text, (quantity_x - quantity_width, quantity_y)
+                    )
+                    # The count is increased so a new variable can be displayed.
+                    initial_index += 1
+                # If the image needs to be displayed:
+                if display_type == "image":
+                    # The current image to be obtained is taken from the global list.
+                    current_image = menu_images[initial_index]
+                    # The image is displayed using the given x and y.
+                    screen.blit(current_image, (x, y))
+                    # Cycles to the next item.
+                    initial_index += 1
 
 
 # UNUSED FUNCTIONS ARE BELOW
@@ -869,6 +1079,9 @@ while running:
     if state == 5:
         screen.fill(BLACK)
         current_state = ingame_menu(screen, 1200, 700)
+    if current_state == 6:
+        screen.fill(BLACK)
+        state = None
     # The display is constantly updated.
     pygame.display.flip()
     # The framerate is set to 30 to minimize system resources.
