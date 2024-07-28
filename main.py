@@ -1,6 +1,8 @@
 from typing import Tuple
 # Importing pygame into the program
 import pygame
+# Used for distance calculations when checking mouse clicks.
+import math
 
 # Activating pygame
 pygame.init()
@@ -58,6 +60,9 @@ TOTAL_MENU_ICON: tuple[int, int] = 50, 50
 TOTAL_FND_ICON: tuple[int, int] = 70, 70
 NAVIGATION_ICON: tuple[int, int] = 40, 40
 XS_NAVIGATION_ICON: tuple[int, int] = 30, 30
+# For display on the creation menus.
+ORDER_ICON: tuple[int, int] = 35, 35
+CREATED_ICON: tuple[int, int] = 130, 130
 # PREDEFINED VARIABLES
 
 # The desired screen dimensions.
@@ -107,8 +112,14 @@ total_stock_items: dict[str, int] = {
     "Hugo Juice": 0,
 }
 # All of the menu items with their values put into a list.
-menu = list(total_stock_items.items())
-
+menu_list = list(total_stock_items.items())
+# Dictionary for individual rectangles so they can be used specifically.
+station_bases = {}
+# To define which station was triggered. Global variable used to maintain status.
+station_status = {}
+# The variables are globablly used to prevent a glitch where a button appears as another one closes, resulting in them clicking it unintentionally. Wait prevents that button from being clicked.
+pause: bool = False
+wait: int = 0
 # CURRENTLY UNUSED VARIABLES (DELETE IF NOT NEEDED)
 
 # Colours of the circles in the game selection menu. Also used for the circle in the 
@@ -154,6 +165,10 @@ total_stock_name_font = pygame.font.Font("fonts/body text.ttf", 12)
 stock_required_font = pygame.font.Font("fonts/important button.ttf", 19)
 navigation_font = pygame.font.Font("fonts/important button.ttf", 18)
 number_font = pygame.font.Font("fonts/important button.ttf", 45)
+status_heading_font = pygame.font.Font("fonts/important button.ttf", 16)
+status_font = pygame.font.Font("fonts/important button.ttf", 11)
+item_font = pygame.font.Font("fonts/body text.ttf", 11)
+time_remaining_font = pygame.font.Font("fonts/important button.ttf", 25)
 
 # This is the text displayed in the game.
 # First main menu screen
@@ -195,6 +210,16 @@ current_car_heading = navigation_font.render("Current car time:", True, WHITE)
 average_car_heading = navigation_font.render("Average: ", True, WHITE)
 money_heading = navigation_font.render("Money earnt: ", True, WHITE)
 time_heading = navigation_font.render("Time left: ", True, WHITE)
+# Drinks, Grill and BFM
+status_heading = status_heading_font.render("STATUS:", True, WHITE)
+status_standby = status_font.render("STANDBY", True, RED)
+status_wait = status_font.render("CREATING", True, DARK_YELLOW)
+status_ready = status_font.render("READY!", True, GREEN)
+back_name_text_xs = main_menu_options_xs3.render("BACK", True, DARK_YELLOW)
+current_requirements = heading_font.render("Current:", True, WHITE)
+total_requirements = heading_font.render("Total:", True, WHITE)
+button_start = dthru_heading_font.render("CREATE!", True, WHITE)
+creation_click = status_font.render("CLICK!", True, WHITE)
 # TBR (Testing only, To Be Removed)
 burger_notdone_text = body_font.render("burger", True, RED)
 burger_done_text = body_font.render("burger", True, GREEN)
@@ -212,6 +237,7 @@ time_left = number_font.render("6:00", True, WHITE)
 grill_heading = burger_name_font.render("Grill", True, WHITE)
 drinks_heading = burger_name_font.render("Drinks", True, WHITE)
 bfm_heading = burger_name_font.render("BFM", True, WHITE)
+needed_juice = main_menu_options_xs2.render("x0", True, WHITE)
 # Choosing a game mode (UNUSED)
 choose_mode_1 = title_font.render("Choose your", True, YELLOW)
 choose_mode_2 = title_font.render("gamemode.", True, YELLOW)
@@ -259,7 +285,10 @@ name_background = pygame.image.load("images/darkened_background.png")
 back_name = pygame.image.load("images/back.png")  # Reference: Icon by Freepik
 car = pygame.image.load("images/car_green_side.png") # Reference: Icon by Freepik
 view = pygame.image.load("images/view.png") # Reference: Icon by Prosymbols
-
+# Traffic lights (All from macrovector on Freepik)
+redlight = pygame.image.load("images/redlight.png")
+yellowlight = pygame.image.load("images/yellowlight.png")
+greenlight = pygame.image.load("images/greenlight.png")
 # Menu items (all from Freepik)
 big_hugo = pygame.image.load("images/menu items/big hugo.png")
 colossal_h = pygame.image.load("images/menu items/colossal h.png")
@@ -298,8 +327,13 @@ scoreboard_icon_sized = pygame.transform.scale(scoreboard_icon, (ICON))
 back_name_sized = pygame.transform.scale(back_name, (ICON))
 car_sized = pygame.transform.scale(car, (85, 45))
 view_sized = pygame.transform.scale(view, (80, 80))
+redlight_sized = pygame.transform.scale(redlight, (50, 135))
+yellowlight_sized = pygame.transform.scale(yellowlight, (50, 135))
+greenlight_sized = pygame.transform.scale(greenlight, (50, 135))
 
+# Menu items
 improper_slammer_sized = pygame.transform.scale(improper_slammer, (MENU_ICON))
+juice_sized = pygame.transform.scale(juice, (MENU_ICON))
 mcbullets_sized = pygame.transform.scale(mcbullets, (MENU_ICON))
 big_hugo_sized_t = pygame.transform.scale(big_hugo, (TOTAL_MENU_ICON))
 colossal_h_sized_t = pygame.transform.scale(colossal_h, (TOTAL_MENU_ICON))
@@ -326,6 +360,13 @@ grill_icon = pygame.transform.scale(big_hugo, (NAVIGATION_ICON))
 drinks_icon = pygame.transform.scale(juice, (NAVIGATION_ICON))
 fries_icon = pygame.transform.scale(fries, (XS_NAVIGATION_ICON))
 nuggets_icon = pygame.transform.scale(mcbullets, (XS_NAVIGATION_ICON))
+
+# Icons for displaying the order on respective menus.
+juice_order_icon = pygame.transform.scale(juice, (ORDER_ICON))
+
+# Icons for the finished product on respective menus.
+juice_creation_icon = pygame.transform.scale(juice, (CREATED_ICON))
+keanu_krunch_creation_icon = pygame.transform.scale(keanu_krunch, (CREATED_ICON))
 # This list needs to be defined down here where the images have been defined.
 menu_images: list = [
     big_hugo_sized_t,
@@ -397,7 +438,9 @@ def start_order_now(screen) -> bool:
         screen, WHITE, (44, 240, 200, 200))
     # The events are handled externally, checking if the user has clicked the start_order button,
     # and if they did the desired state to move to is provided.
-    current_event = handle_events(event, "click", start_order_position, ProgramState.MAIN_MENU)
+    current_event = handle_events(
+        event, "click", start_order_position, ProgramState.MAIN_MENU, None
+    )
     # The state of the game is returned to the main loop so the appropiate function can be called.
     return current_event
     
@@ -422,11 +465,11 @@ def main_menu(screen) -> bool:
     # The events are handled externally, checking if the user is hovering over a menu_box,
     # using the rectangles defined above. No desired event is provided as the game state
     # shouldn't change.
-    menu_box_1 = handle_events(event, "hover", play_rect, None)
-    menu_box_2 = handle_events(event, "hover", first_shift_rect, None)
-    menu_box_3 = handle_events(event, "hover", scoreboard_rect, None)
-    menu_box_4 = handle_events(event, "hover", settings_rect, None)  
-    
+    menu_box_1 = handle_events(event, "hover", play_rect, None, None)
+    menu_box_2 = handle_events(event, "hover", first_shift_rect, None, None)
+    menu_box_3 = handle_events(event, "hover", scoreboard_rect, None, None)
+    menu_box_4 = handle_events(event, "hover", settings_rect, None, None)
+
     # The buttons are now drawn now the menu_boxes have been defined.
     play = pygame.draw.rect(
         screen, BLACK, play_rect, menu_box_1
@@ -453,9 +496,9 @@ def main_menu(screen) -> bool:
     screen.blit(first_shift_icon_sized, (198, 215))
     screen.blit(settings_icon_sized, (198, 405))
     screen.blit(scoreboard_icon_sized, (198, 320))
-    
-    # The event function checks if the user has clicked play.      
-    current_event = handle_events(event, "click", play, ProgramState.ENTER_NAME)
+
+    # The event function checks if the user has clicked play.
+    current_event = handle_events(event, "click", play, ProgramState.ENTER_NAME, None)
     return current_event
         
 def toggle_visibility(last_switch_local: int, visible_local: bool, time_switch: int, repeat: bool) -> bool:
@@ -485,6 +528,67 @@ def toggle_visibility(last_switch_local: int, visible_local: bool, time_switch: 
             # can be altered.
             last_switch = start_switches
     return visible_local
+
+def timer(time_end: int) -> bool:
+    """A timer for how long a station should remain in its status.
+
+    Args:
+        time_end (int): When the timer should end.
+
+    Returns:
+        bool: A boolean indicating if the timer has passed its end time.
+    """
+    time_start = pygame.time.get_ticks()
+    return time_start >= time_end
+
+
+def draw_timer(screen, elapsed_time: int, time_end: int, center, radius: int):
+    """This function draws a circle which disappears as time passes.
+
+    Args:
+        screen: The surface to be drawn on.
+        elapsed_time (int): The elapsed time since the timer was started, provided by caller.
+        time_end (int): When the timer should end, and the circle fully disappear.
+        center: The x and y of the circles center.
+        radius (int): The radius of the circle.
+    """
+    # The remaining time left is calculated. 'Max' ensures the remaining time
+    # will not be negative by making remaining_time equal at least 0.
+    remaining_time = max(0, time_end - elapsed_time)
+    # The angle is calculated using a fraction representing the remaining time,
+    # and converts it into an angle in radians.
+    angle = 2 * math.pi * (remaining_time / time_end)
+    # If the angle isn't a full circle:
+    if angle < 2 * math.pi:
+        # Start point is set to the top of the circle.
+        start_angle = -math.pi / 2
+        # End of the arc is calculated based on remaining time 'angle'.
+        end_angle = start_angle + angle
+        # The number of lines used to pinpoint the arc.
+        num_segments = 100
+        # A list of all the points to draw between.
+        points = []
+        # This loop uses trigonometry to get each point for each segment.
+        for i in range(num_segments + 1):
+            theta = start_angle + (end_angle - start_angle) * i / num_segments
+            x = center[0] + radius * math.cos(theta)
+            y = center[1] + radius * math.sin(theta)
+            # Points are added to the list.
+            points.append((x, y))
+        # If there is more than 1 point remaining:
+        if len(points) > 1:
+            # The lines creating the circle are drawn.
+            pygame.draw.lines(screen, WHITE, False, points, 6)
+    # The text for time left is converted to seconds, and a max is again used
+    # to prevent errors.
+    time_left = max(0, remaining_time // 1000)
+    # As the time left constantly changes, the font is rendered within the
+    # function.
+    time_left_text = time_remaining_font.render(str(time_left), True, WHITE)
+    # The text is centered differently as this function doesn't have access to the station outlines directly (they are in a tuple) for further efficency. The text is made into a rect with its center being = to the circle center.
+    text_centering = time_left_text.get_rect(center=center)
+    screen.blit(time_left_text, text_centering)
+
 
 def name_entry(screen, events) -> bool:
     """Where the user can enter their name.
@@ -519,12 +623,16 @@ def name_entry(screen, events) -> bool:
     # In order to be continously updated, the pygame event handling for loop must be used.
     for event in events:
         # If the user types, the event handling function handles the inputs appropiately.
-        user_name = handle_events(event, "type", None, None)
+        user_name = handle_events(event, "type", None, None, None)
         # Checks if the user clicked the back button, returning to the previous menu.
-        previous_event = handle_events(event, "click", back, ProgramState.MAIN_MENU)
+        previous_event = handle_events(
+            event, "click", back, ProgramState.MAIN_MENU, None
+        )
         # Checks if the user pressed enter. The desired state of GAME_MENU is only used if
         # the requirements in the handle_events function is met.
-        current_event = handle_events(event, "enter", None, ProgramState.GAME_MENU)
+        current_event = handle_events(
+            event, "enter", None, ProgramState.GAME_MENU, None
+        )
         # If the handle_events function returns one of these errors instead of the desired state:
         if current_event == "error_no_name" or current_event == "error_length":
             # The error loop is set to true so the program continously displays the error message
@@ -782,7 +890,7 @@ def ingame_menu(screen, screen_width, screen_height) -> bool:
     screen.blit(grill_heading, (1055, 565))
     screen.blit(drinks_heading, (1132, 565))
     screen.blit(bfm_heading, (1097, 620))
-    current_event = handle_events(event, "click", drinks, ProgramState.DRINKS)
+    current_event = handle_events(event, "click", drinks, ProgramState.DRINKS, None)
     return current_event
 
 
@@ -811,11 +919,11 @@ def display_menu_items(
             if initial_index <= max_index:
                 # If the function is displaying text:
                 if display_type == "text":
-                    # The quantity is set.
+                    # The quantity positions are set.
                     quantity_x: int = x + 21
                     quantity_y: int = y + 20
                     # The item name and quantity is taken from the dict with the provided index.
-                    item_name, item_quantity = menu[initial_index]
+                    item_name, item_quantity = menu_list[initial_index]
                     # A variable assigned to the indexed name and quantity is made with the appropiate font.
                     item_name_text = total_stock_name_font.render(
                         item_name, True, WHITE
@@ -841,6 +949,266 @@ def display_menu_items(
                     screen.blit(current_image, (x, y))
                     # Cycles to the next item.
                     initial_index += 1
+
+def creation_menu(
+    station_names: list[str],
+    menu_name: str,
+    menu_image,
+    order_icons: list,
+    creation_icons: list,
+    item_names: list[str],
+    timer_duration: int,
+    x_positions: list[int] = [60, 450, 840],
+    y_positions: list[int] = [170, 430],
+    button_radius: int = 80,
+):
+    # The status of each station needs to be globally accessed so it can be maintained. The same goes for pause and wait, and the menu list needs to be accessed so its quantities can be updated.
+    global station_status, pause, wait, menu_list
+    # The menu name is displayed using the input supplied.
+    menu = heading_font.render(menu_name, True, WHITE)
+    # The line seperating the menu name and requirements from the creation.
+    pygame.draw.line(screen, WHITE, (0, 150), (1200, 150))
+    # The line dividing the menu name and requirements.
+    pygame.draw.line(screen, WHITE, (358, 0), (358, 150))
+    # The line dividing the total and current requirements.
+    pygame.draw.line(screen, WHITE, (358, 75), (1200, 75))
+    # Ensures the menu text is centered.
+    name_width = (menu.get_width() - 78) / 2
+    screen.blit(menu, (135 - name_width, 10))
+    # Displays menu icons.
+    screen.blit(menu_image, (10, 12))
+    screen.blit(menu_image, (280, 12))
+    # This is the back buttons textures.
+    back = pygame.draw.rect(screen, RED, (20, 80, 150, BUTTON2_HEIGHT))
+    # This is the outline of the back button.
+    pygame.draw.rect(screen, WHITE, (20, 80, 150, BUTTON2_HEIGHT), 4)
+    # Text for the back button, drawn after so the button doesn't cover it,
+    screen.blit(back_name_sized, (25, 83))
+    screen.blit(back_name_text_xs, (70, 90))
+    # If the user wishes to go back, the handle events function checks if the button has been clicked.
+    previous_event = handle_events(event, "click", back, ProgramState.GAME_MENU, None)
+    # Heading text for order requirements.
+    screen.blit(current_requirements, (370, 7))
+    screen.blit(total_requirements, (370, 77))
+
+    # Index is initially set to 0 to cycle from the start. Multiple are needed for the various for loops.
+    index: int = 0
+    image_index: int = 0
+    text_index: int = 0
+    creation_index: int = 0
+
+    # This for loop is for the images when displaying the order stats.
+    for image in order_icons:
+        # Replace needed_juice with proper variable
+        # For each image, it is moved by 50 to the right. The icon is displayed by cycling through the provided list.
+        screen.blit(needed_juice, (530 + image_index * 110, 15))
+        screen.blit(order_icons[image_index], (585 + image_index * 110, 8))
+        # For total requirements (replace needed juice)
+        screen.blit(needed_juice, (480 + image_index * 110, 85))
+        screen.blit(order_icons[image_index], (535 + image_index * 110, 80))
+        image_index += 1
+
+    # A similar loop to the previous, except if the item name requires two lines extra code is added to manually split it.
+    for item in item_names:
+        # This code splits anything which takes up two lines.
+        lines = item.split("\n")
+        # This is the position of the text on the y axix. It needs to be in a variable so the new line can be put on a different y.
+        y_offset: int = 40
+        # For each of the split lines:
+
+        for line in lines:
+            # The item is defined and drawn.
+            item_surface = item_font.render(line, True, WHITE)
+            # Code for making sure text is centered.
+            item_width = (item_surface.get_width() - 24) / 2
+            screen.blit(item_surface, (590 - item_width + text_index * 110, y_offset))
+            screen.blit(
+                item_surface, (540 - item_width + text_index * 110, y_offset + 75)
+            )
+            # Y is updated accordingly to how big the line is.
+            y_offset += item_font.get_linesize()
+        text_index += 1
+
+    # A similar loop used in the above function.
+    for y in y_positions:
+        for x in x_positions:
+            # Lines are drawn based off the provided positions.
+            pygame.draw.line(
+                screen, WHITE, (x, y + 50), (x + 298, y + 50), DTHRU_OUTLINE
+            )
+            pygame.draw.line(
+                screen, WHITE, (x + 90, y + 50), (x + 90, y + 248), DTHRU_OUTLINE
+            )
+            # Each station is assigned its unique name based on the index so it can be individually targeted.
+            station_name = f"Station{index}"
+            # The size of each box.
+            station_outline = pygame.Rect(x, y, 300, 250)
+            button_outline = (x + 193, y + 150)
+            # The name of the box, using the list provided.
+            station = f"Station #{index + 1}: {station_names[index]}"
+            # A variable assigned to this name is made.
+            station_surface = navigation_font.render(station, True, WHITE)
+            # The local status variable, used in event handling.
+            status: int = 0
+
+            # If a station has not yet been added to the global dictionary controlling status, it is added.
+            if station_name not in station_status:
+                station_status[station_name] = {"status": 0, "end_time": None}
+
+            # Each rectangles name is assigned to a dictionary as a key with the following values:
+            station_bases[station_name] = {
+                "station_outline": station_outline,
+                "station": station,
+                "station_surface": station_surface,
+                "button_outline": button_outline,
+                "status": status,
+            }
+            # Index moves up one to go to the next item on the list.
+            index += 1
+
+    for station_name, rect_info in station_bases.items():
+        # For each rectangle, its value is accessed and utilized.
+        # The current time is documented so the program knows when to stop the timer once activated.
+        current_time = pygame.time.get_ticks()
+        # If clicking inputs are paused:
+        if pause is True:
+            # A variable used to stall the input is activated which goes up every time this function repeats.
+            wait += 1
+        # After 20 repeats:
+        if wait > 20:
+            # Inputs are unpaused.
+            pause = False
+        # The local status variable is defined by using the event handling to check if the circle has been clicked.
+        # If inputs aren't paused:
+        if not pause:
+            # The local status is defined by checking if the circle has been clicked.
+            rect_info["status"] = handle_events(
+                event,
+                "click",
+                rect_info["button_outline"],
+                1,
+                rect_info["status"],
+                create_button=True,
+            )
+        # If the local variable is changed to 1 but the global one hasn't been changed yet:
+        if rect_info["status"] == 1 and station_status[station_name]["status"] == 0:
+            # It is updated to 1.
+            station_status[station_name]["status"] = 1
+            # The time for the timer to end is made using the current time plus the specified duration.
+            station_status[station_name]["end_time"] = current_time + timer_duration
+
+        # If the global status is 1 and the timer has expired (returning True):
+        if station_status[station_name]["status"] == 1 and timer(
+            station_status[station_name]["end_time"]
+        ):
+            # Status is sent back to the next stage.
+            station_status[station_name]["status"] = 2
+
+        # The rectangle is drawn based on its previous definition.
+        pygame.draw.rect(screen, WHITE, rect_info["station_outline"], DTHRU_OUTLINE)
+
+        # If the station status is hasn't been clicked:
+        if station_status[station_name]["status"] == 0:
+            # The start circle is drawn with its respective elements.
+            pygame.draw.circle(
+                screen, GREEN, rect_info["button_outline"], button_radius
+            )
+            pygame.draw.circle(
+                screen, WHITE, rect_info["button_outline"], button_radius, DTHRU_OUTLINE
+            )
+            screen.blit(
+                button_start,
+                (
+                    rect_info["station_outline"].x + 135,
+                    rect_info["station_outline"].y + 130,
+                ),
+            )
+            # The traffic light is set to red and the status to standby for later use.
+            light = redlight_sized
+            creation_status = status_standby
+
+        # If an item is being made:
+        if station_status[station_name]["status"] == 1:
+            # The elapsed time is calculated for the timer to draw off.
+            elapsed_time = current_time - (
+                station_status[station_name]["end_time"] - timer_duration
+            )
+            # The draw timer function is called.
+            draw_timer(
+                screen,
+                elapsed_time,
+                timer_duration,
+                rect_info["button_outline"],
+                button_radius,
+            )
+            # These are again set to something else.
+            light = yellowlight_sized
+            creation_status = status_wait
+
+        # If the item has been made:
+        if station_status[station_name]["status"] == 2:
+            # The text saying to click.
+            screen.blit(
+                creation_click,
+                (
+                    rect_info["station_outline"].x + 174,
+                    rect_info["station_outline"].y + 220,
+                ),
+            )
+            # A rect of the image of the menu item is aquired. This is used for both centering and click detection.
+            item_rect = creation_icons[creation_index].get_rect(
+                center=rect_info["button_outline"]
+            )
+            # Depending on what the item is based on the index, it is displayed at the center of the button outline.
+            screen.blit(creation_icons[creation_index], item_rect)
+            # Text is changed.
+            light = greenlight_sized
+            creation_status = status_ready
+            # Checks if the item was clicked or not.
+            rect_info["status"] = handle_events(
+                event,
+                "click",
+                item_rect,
+                0,
+                None,
+                None,
+            )
+            # If it was:
+            if rect_info["status"] == 0 and station_status[station_name]["status"] == 2:
+                # Status is reverted to the original.
+                station_status[station_name]["status"] = 0
+                # A pause timer is activated so the creation button isn't accidently clicked. A variable is set to the current station so it can have its quantity updated.
+                item_station = station_names[creation_index]
+                wait = 0
+                pause = True
+                total_stock_items[item_station] += 1
+                # As the items are accessed indirectly through this list, it needs to be updated.
+                menu_list = list(total_stock_items.items())
+
+        # The text is drawn, being a certain amount of pixels away from the rect itself for a consistent baseline.
+        status_width = (creation_status.get_width() - 46) / 2
+        screen.blit(
+            rect_info["station_surface"],
+            (rect_info["station_outline"].x + 10, rect_info["station_outline"].y + 10),
+        )
+        screen.blit(
+            status_heading,
+            (rect_info["station_outline"].x + 10, rect_info["station_outline"].y + 60),
+        )
+        # These draw off what mode the station is in, defined earlier.
+        screen.blit(
+            creation_status,
+            (
+                rect_info["station_outline"].x + 23 - status_width,
+                rect_info["station_outline"].y + 90,
+            ),
+        )
+        screen.blit(
+            light,
+            (rect_info["station_outline"].x + 20, rect_info["station_outline"].y + 110),
+        )
+        creation_index += 1
+    return previous_event
 
 
 # UNUSED FUNCTIONS ARE BELOW
@@ -974,14 +1342,25 @@ def calculate_stats(day: int, day_increased: bool, original_day: int, today_stat
 
 # EVENT HANDLING
 
-def handle_events(event, keystroke_type: str, button, desired_state: int) -> int:
+def handle_events(
+    event,
+    keystroke_type: str,
+    button,
+    desired_state: int,
+    button_state: int,
+    create_button: bool = False,
+    radius: int = 80,
+) -> int:
     """_summary_
 
     Args:
         event: The pygame event enabler.
         keystroke_type (str): The type of pressed key.
         button: The game element being interacted with.
-        desired_state (int): The game state to move to.
+        desired_state (int): The state to move to.
+        button_state (int): The current state of the button. (e.g whether it has been clicked or not, represented in ints.)
+        create_button (bool): Whether the button is the create button used for item creation.
+        radius: The radius of the creation button, used if create_button is true.
 
     Returns:
         int | str: The game state to move to, or an errors name.
@@ -991,12 +1370,27 @@ def handle_events(event, keystroke_type: str, button, desired_state: int) -> int
     # If the caller needs to check if a button was clicked:
     if keystroke_type == "click":
         if event.type == pygame.MOUSEBUTTONDOWN:
+            # If the create_button is being clicked:
+            if create_button:
+                # This is the Pythagorean theorem, getting the distance between 2 points (the mouse click, event, and the coordinates of the circle, button. 0 represents x, 1 represents y.)
+                distance = math.sqrt(
+                    (event.pos[0] - button[0]) ** 2 + (event.pos[1] - button[1]) ** 2
+                )
+                # If the distance between the 2 points lies within the circles radius, the desired state is returned.
+                if distance <= radius:
+                    button_state = desired_state
+                    return button_state
+                else:
+                    return button_state
             # If the button is clicked:
-            if button.collidepoint(event.pos):
-                # The desired_state provided in the argument is returned to the caller.
-                # Otherwise, nothing is returned and the state remains intact.
-                return desired_state  
-    
+            else:
+                if button.collidepoint(event.pos):
+                    # The desired_state provided in the argument is returned to the caller.
+                    # Otherwise, nothing is returned and the state remains intact.
+                    return desired_state
+        else:
+            return button_state
+
     # If the caller needs to check if the user is hovering over something:        
     if keystroke_type == "hover":
         # If the mouse is hovering over a menu item, its outline is thickened.
@@ -1090,7 +1484,29 @@ while running:
         current_state = ingame_menu(screen, 1200, 700)
     if current_state == 6:
         screen.fill(BLACK)
-        state = None
+        state = creation_menu(
+            [
+                "Hugo Juice",
+                "Hugo Juice",
+                "Hugo Juice",
+                "Hugo Juice",
+                "Hugo Juice",
+                "Hugo Juice",
+            ],
+            "Drinks",
+            juice_sized,
+            [juice_order_icon],
+            [
+                juice_creation_icon,
+                juice_creation_icon,
+                juice_creation_icon,
+                juice_creation_icon,
+                juice_creation_icon,
+                juice_creation_icon,
+            ],
+            ["Hugo\nJuice"],
+            5000,
+        )
     # The display is constantly updated.
     pygame.display.flip()
     # The framerate is set to 30 to minimize system resources.
