@@ -3,7 +3,14 @@ from typing import Tuple
 import pygame
 # Used for distance calculations when checking mouse clicks.
 import math
+# Used for changing the windows onscreen position
+import os
 
+# The x and y of the windows position after the main menu.
+WINDOW_X: int = 25
+WINDOW_Y: int = 18
+# Sets the position of the window onscreen.
+os.environ["SDL_VIDEO_WINDOW_POS"] = "%d,%d" % (WINDOW_X, WINDOW_Y)
 # Activating pygame
 pygame.init()
 
@@ -19,7 +26,10 @@ class ProgramState:
     DAY_STATS: int = 4
     GAME_MENU: int = 5
     DRINKS: int = 6
-
+    GRILL: int = 7
+    BFM: int = 8
+    MAKE_GRILL: int = 9
+    MAKE_BFM: int = 10
 
 # The state is initially set to the first phase so the program starts.
 current_state: int = ProgramState.GAME_OPEN
@@ -99,9 +109,9 @@ total_stock_items: dict[str, int] = {
     "Colossal H": 0,
     "5/4 Slammer": 0,
     "2 5/4 Slammer": 0,
-    "Almighty. F": 0,
+    "Almighty Florida": 0,
     "Keanu Krunch": 0,
-    "Radioactive. McR": 0,
+    "Suspicious Chicken": 0,
     "Chicken Little": 0,
     "10:1": 0,
     "4:1": 0,
@@ -115,14 +125,17 @@ total_stock_items: dict[str, int] = {
 menu_list = list(total_stock_items.items())
 # Dictionary for individual rectangles so they can be used specifically.
 station_bases = {}
-# To define which station was triggered. Global variable used to maintain status.
+# To define which station was triggered. Global variable used to maintain status. This becomes a 2d dictionary.
 station_status = {}
 # The variables are globablly used to prevent a glitch where a button appears as another one closes, resulting in them clicking it unintentionally. Wait prevents that button from being clicked.
 pause: bool = False
+skip: bool = False
 wait: int = 0
+wait2: int = 0
+
 # CURRENTLY UNUSED VARIABLES (DELETE IF NOT NEEDED)
 
-# Colours of the circles in the game selection menu. Also used for the circle in the 
+# Colours of the circles in the game selection menu. Also used for the circle in the
 # clock in screen.
 circle_colour_1: Tuple[int, int, int] = (255, 255, 255)
 circle_colour_2: Tuple[int, int, int] = (255, 255, 255)
@@ -180,7 +193,7 @@ start_order_1 = start_order_font.render("START", True, DARK_YELLOW)
 start_order_2 = start_order_font_xs.render("ORDER", True, DARK_YELLOW)
 start_order_3 = start_order_font.render("HERE", True, DARK_YELLOW)
 start_order_4 = start_order_font.render("!!!", True, DARK_YELLOW)
-version = heading_font.render("VERSION: PROTO 2.2", True, RED)
+version = heading_font.render("VERSION: PROTO 4.1", True, RED)
 # Second main menu screen
 play_button = main_menu_options.render("PLAY", True, DARK_YELLOW)
 tutorial_button_1 = main_menu_options.render("FIRST", True, DARK_YELLOW)
@@ -216,6 +229,8 @@ status_standby = status_font.render("STANDBY", True, RED)
 status_wait = status_font.render("CREATING", True, DARK_YELLOW)
 status_ready = status_font.render("READY!", True, GREEN)
 back_name_text_xs = main_menu_options_xs3.render("BACK", True, DARK_YELLOW)
+create_name_text_xs = main_menu_options_xs3.render("MAKE", True, DARK_YELLOW)
+cook_name_text_xs = main_menu_options_xs3.render("COOK", True, DARK_YELLOW)
 current_requirements = heading_font.render("Current:", True, WHITE)
 total_requirements = heading_font.render("Total:", True, WHITE)
 button_start = dthru_heading_font.render("CREATE!", True, WHITE)
@@ -283,12 +298,14 @@ scoreboard_icon = pygame.image.load(
 )  # Reference: Icon by Freepik
 name_background = pygame.image.load("images/darkened_background.png")
 back_name = pygame.image.load("images/back.png")  # Reference: Icon by Freepik
-car = pygame.image.load("images/car_green_side.png") # Reference: Icon by Freepik
-view = pygame.image.load("images/view.png") # Reference: Icon by Prosymbols
+forwards = pygame.image.load("images/forward.png")
+car = pygame.image.load("images/car_green_side.png")  # Reference: Icon by Freepik
+view = pygame.image.load("images/view.png")  # Reference: Icon by Prosymbols
 # Traffic lights (All from macrovector on Freepik)
 redlight = pygame.image.load("images/redlight.png")
 yellowlight = pygame.image.load("images/yellowlight.png")
 greenlight = pygame.image.load("images/greenlight.png")
+
 # Menu items (all from Freepik)
 big_hugo = pygame.image.load("images/menu items/big hugo.png")
 colossal_h = pygame.image.load("images/menu items/colossal h.png")
@@ -301,6 +318,8 @@ chicken_little = pygame.image.load("images/menu items/lil chicken.png")
 mcbullets = pygame.image.load("images/menu items/mcbullets.png")
 fries = pygame.image.load("images/menu items/fries.png")
 juice = pygame.image.load("images/menu items/juice.png")
+# Icon by Smashicons
+bfm_icon = pygame.image.load("images/menu items/bfm.png")
 
 # Patties
 hugo_patty = pygame.image.load(
@@ -325,6 +344,7 @@ first_shift_icon_sized = pygame.transform.scale(first_shift_icon, (ICON))
 settings_icon_sized = pygame.transform.scale(settings_icon, (ICON))
 scoreboard_icon_sized = pygame.transform.scale(scoreboard_icon, (ICON))
 back_name_sized = pygame.transform.scale(back_name, (ICON))
+forward_sized = pygame.transform.scale(forwards, (ICON))
 car_sized = pygame.transform.scale(car, (85, 45))
 view_sized = pygame.transform.scale(view, (80, 80))
 redlight_sized = pygame.transform.scale(redlight, (50, 135))
@@ -357,17 +377,52 @@ angus_patty_sized_t = pygame.transform.scale(angus_patty, (TOTAL_PATTY_ICON))
 chicken_patty_sized = pygame.transform.scale(chicken_patty, (PATTY_ICON))
 chicken_patty_sized_t = pygame.transform.scale(chicken_patty, (TOTAL_PATTY_ICON))
 grill_icon = pygame.transform.scale(big_hugo, (NAVIGATION_ICON))
+grill_menu_icon = pygame.transform.scale(big_hugo, (MENU_ICON))
+bfm_menu_icon = pygame.transform.scale(bfm_icon, (MENU_ICON))
 drinks_icon = pygame.transform.scale(juice, (NAVIGATION_ICON))
 fries_icon = pygame.transform.scale(fries, (XS_NAVIGATION_ICON))
 nuggets_icon = pygame.transform.scale(mcbullets, (XS_NAVIGATION_ICON))
 
 # Icons for displaying the order on respective menus.
 juice_order_icon = pygame.transform.scale(juice, (ORDER_ICON))
-
+hugopatty_order_icon = pygame.transform.scale(hugo_patty, (ORDER_ICON))
+slammerpatty_order_icon = pygame.transform.scale(slammer_patty, (ORDER_ICON))
+anguspatty_order_icon = pygame.transform.scale(angus_patty, (ORDER_ICON))
+fries_order_icon = pygame.transform.scale(fries, (ORDER_ICON))
+mcbullets_order_icon = pygame.transform.scale(mcbullets, (ORDER_ICON))
+chicken_order_icon = pygame.transform.scale(chicken_patty, (ORDER_ICON))
+bighugo_order_icon = pygame.transform.scale(big_hugo, (ORDER_ICON))
+improperslammer_order_icon = pygame.transform.scale(improper_slammer, (ORDER_ICON))
+almightyflorida_order_icon = pygame.transform.scale(almighty_florida, (ORDER_ICON))
+colossalh_order_icon = pygame.transform.scale(colossal_h, (ORDER_ICON))
+doubleimproperslammer_order_icon = pygame.transform.scale(
+    double_improper_slammer, (ORDER_ICON)
+)
+keanu_krunch_order_icon = pygame.transform.scale(keanu_krunch, (ORDER_ICON))
+radioactivechicken_order_icon = pygame.transform.scale(radioactive_mcr, (ORDER_ICON))
+chickenlittle_order_icon = pygame.transform.scale(chicken_little, (ORDER_ICON))
 # Icons for the finished product on respective menus.
 juice_creation_icon = pygame.transform.scale(juice, (CREATED_ICON))
+hugopatty_creation_icon = pygame.transform.scale(hugo_patty, (CREATED_ICON))
+slammerpatty_creation_icon = pygame.transform.scale(slammer_patty, (CREATED_ICON))
+anguspatty_creation_icon = pygame.transform.scale(angus_patty, (CREATED_ICON))
+fries_creation_icon = pygame.transform.scale(fries, (CREATED_ICON))
+mcbullets_creation_icon = pygame.transform.scale(mcbullets, (CREATED_ICON))
+chicken_creation_icon = pygame.transform.scale(chicken_patty, (CREATED_ICON))
+bighugo_creation_icon = pygame.transform.scale(big_hugo, (CREATED_ICON))
+improperslammer_creation_icon = pygame.transform.scale(improper_slammer, (CREATED_ICON))
+almightyflorida_creation_icon = pygame.transform.scale(almighty_florida, (CREATED_ICON))
+colossalh_creation_icon = pygame.transform.scale(colossal_h, (CREATED_ICON))
+doubleimproperslammer_creation_icon = pygame.transform.scale(
+    double_improper_slammer, (CREATED_ICON)
+)
 keanu_krunch_creation_icon = pygame.transform.scale(keanu_krunch, (CREATED_ICON))
-# This list needs to be defined down here where the images have been defined.
+radioactivechicken_creation_icon = pygame.transform.scale(
+    radioactive_mcr, (CREATED_ICON)
+)
+chickenlittle_creation_icon = pygame.transform.scale(chicken_little, (CREATED_ICON))
+
+# These lists needs to be defined down here where the images have been defined.
 menu_images: list = [
     big_hugo_sized_t,
     colossal_h_sized_t,
@@ -386,7 +441,55 @@ menu_images: list = [
     juice_sized_t,
 ]
 
-
+# Default menu lists for starting
+grill_names: list[str] = [
+    "10:1",
+    "4:1",
+    "Angus",
+    "10:1",
+    "4:1",
+    "Angus",
+]
+grill_creation: list = [
+    hugopatty_creation_icon,
+    slammerpatty_creation_icon,
+    anguspatty_creation_icon,
+    hugopatty_creation_icon,
+    slammerpatty_creation_icon,
+    anguspatty_creation_icon,
+]
+grill_timers: list[int] = [
+    9000,
+    9000,
+    15000,
+    9000,
+    9000,
+    15000,
+]
+bfm_names: list[str] = [
+    "Fries",
+    "McBullets",
+    "Chicken",
+    "Fries",
+    "McBullets",
+    "Chicken",
+]
+bfm_creation: list = [
+    fries_creation_icon,
+    mcbullets_creation_icon,
+    chicken_creation_icon,
+    fries_creation_icon,
+    mcbullets_creation_icon,
+    chicken_creation_icon,
+]
+bfm_timers: list[int] = [
+    6000,
+    7000,
+    8000,
+    6000,
+    7000,
+    8000,
+]
 # FUNCTIONS
 def main_screen_now(screen) -> None:
     """Display the core elements of the game screen.
@@ -890,9 +993,20 @@ def ingame_menu(screen, screen_width, screen_height) -> bool:
     screen.blit(grill_heading, (1055, 565))
     screen.blit(drinks_heading, (1132, 565))
     screen.blit(bfm_heading, (1097, 620))
+    # For each menu button, the program checks if it has been clicked.
+    # If it has been, its value is returned. Otherwise, it checks if another
+    # button was clicked.
+    # This can't be made more efficent as the program needs to check and
+    # redefine one at a time.
     current_event = handle_events(event, "click", drinks, ProgramState.DRINKS, None)
-    return current_event
-
+    if current_event == ProgramState.DRINKS:
+        return current_event
+    current_event = handle_events(event, "click", grill, ProgramState.GRILL, None)
+    if current_event == ProgramState.GRILL:
+        return current_event
+    current_event = handle_events(event, "click", bfm, ProgramState.BFM, None)
+    if current_event == ProgramState.BFM:
+        return current_event
 
 def display_menu_items(
     x_positions: list[int],
@@ -957,13 +1071,33 @@ def creation_menu(
     order_icons: list,
     creation_icons: list,
     item_names: list[str],
-    timer_duration: int,
-    x_positions: list[int] = [60, 450, 840],
+    timer_duration: list[int],
+    x_positions: list[int] = [40, 430, 820],
     y_positions: list[int] = [170, 430],
     button_radius: int = 80,
 ):
     # The status of each station needs to be globally accessed so it can be maintained. The same goes for pause and wait, and the menu list needs to be accessed so its quantities can be updated.
-    global station_status, pause, wait, menu_list
+    global \
+        station_status, \
+        pause, \
+        wait, \
+        menu_list, \
+        grill_names, \
+        grill_creation, \
+        grill_timers, \
+        bfm_names, \
+        bfm_creation, \
+        bfm_timers, \
+        skip, \
+        wait2, \
+        state
+
+    # A 2D Dictionary is used for keeping track of each menus station statuses
+    # so they don't get muddled up. If a dictionary has not been created under
+    # the menu name, one is made.
+    if menu_name not in station_status:
+        station_status[menu_name] = {}
+
     # The menu name is displayed using the input supplied.
     menu = heading_font.render(menu_name, True, WHITE)
     # The line seperating the menu name and requirements from the creation.
@@ -985,8 +1119,17 @@ def creation_menu(
     # Text for the back button, drawn after so the button doesn't cover it,
     screen.blit(back_name_sized, (25, 83))
     screen.blit(back_name_text_xs, (70, 90))
-    # If the user wishes to go back, the handle events function checks if the button has been clicked.
-    previous_event = handle_events(event, "click", back, ProgramState.GAME_MENU, None)
+    if menu_name != "Drinks":
+        if menu_name != "Make Grill" and menu_name != "Make BFM":
+            # This is the create buttons textures.
+            create = pygame.draw.rect(screen, BLUE, (190, 80, 150, BUTTON2_HEIGHT))
+            screen.blit(create_name_text_xs, (197, 90))
+        if menu_name != "Grill" and menu_name != "BFM":
+            cook = pygame.draw.rect(screen, BLUE, (190, 80, 150, BUTTON2_HEIGHT))
+            screen.blit(cook_name_text_xs, (197, 90))
+        pygame.draw.rect(screen, WHITE, (190, 80, 150, BUTTON2_HEIGHT), 4)
+        screen.blit(forward_sized, (285, 80))
+
     # Heading text for order requirements.
     screen.blit(current_requirements, (370, 7))
     screen.blit(total_requirements, (370, 77))
@@ -1051,9 +1194,12 @@ def creation_menu(
             # The local status variable, used in event handling.
             status: int = 0
 
-            # If a station has not yet been added to the global dictionary controlling status, it is added.
-            if station_name not in station_status:
-                station_status[station_name] = {"status": 0, "end_time": None}
+            # If a station has not yet been added to the global dictionary controlling status (inside the corresponding menu), it is added.
+            if station_name not in station_status[menu_name]:
+                station_status[menu_name][station_name] = {
+                    "status": 0,
+                    "end_time": None,
+                }
 
             # Each rectangles name is assigned to a dictionary as a key with the following values:
             station_bases[station_name] = {
@@ -1070,14 +1216,22 @@ def creation_menu(
         # For each rectangle, its value is accessed and utilized.
         # The current time is documented so the program knows when to stop the timer once activated.
         current_time = pygame.time.get_ticks()
+        # The time to make each item is stored from the provided values and indexing
+        # through them.
+        creation_time = timer_duration[creation_index]
         # If clicking inputs are paused:
         if pause is True:
             # A variable used to stall the input is activated which goes up every time this function repeats.
             wait += 1
+        # A second different variable is used for menu switching between cook and create to not interfere with the other variable.
+        if skip is True:
+            wait2 += 1
         # After 20 repeats:
         if wait > 20:
             # Inputs are unpaused.
             pause = False
+        if wait2 > 20:
+            skip = False
         # The local status variable is defined by using the event handling to check if the circle has been clicked.
         # If inputs aren't paused:
         if not pause:
@@ -1091,24 +1245,120 @@ def creation_menu(
                 create_button=True,
             )
         # If the local variable is changed to 1 but the global one hasn't been changed yet:
-        if rect_info["status"] == 1 and station_status[station_name]["status"] == 0:
+        if (
+            rect_info["status"] == 1
+            and station_status[menu_name][station_name]["status"] == 0
+        ):
             # It is updated to 1.
-            station_status[station_name]["status"] = 1
+            station_status[menu_name][station_name]["status"] = 1
             # The time for the timer to end is made using the current time plus the specified duration.
-            station_status[station_name]["end_time"] = current_time + timer_duration
+            station_status[menu_name][station_name]["end_time"] = (
+                current_time + creation_time
+            )
 
         # If the global status is 1 and the timer has expired (returning True):
-        if station_status[station_name]["status"] == 1 and timer(
-            station_status[station_name]["end_time"]
+        if station_status[menu_name][station_name]["status"] == 1 and timer(
+            station_status[menu_name][station_name]["end_time"]
         ):
             # Status is sent back to the next stage.
-            station_status[station_name]["status"] = 2
+            station_status[menu_name][station_name]["status"] = 2
 
         # The rectangle is drawn based on its previous definition.
         pygame.draw.rect(screen, WHITE, rect_info["station_outline"], DTHRU_OUTLINE)
 
+        # If the menu is not drinks:
+        if (
+            menu_name != "Drinks"
+            and menu_name != "Make Grill"
+            and menu_name != "Make BFM"
+        ):
+            # The boxes for toggling.
+            toggle1 = pygame.draw.rect(
+                screen,
+                RED,
+                (
+                    rect_info["station_outline"].x + 320,
+                    rect_info["station_outline"].y + 20,
+                    50,
+                    50,
+                ),
+            )
+            pygame.draw.rect(
+                screen,
+                WHITE,
+                (
+                    rect_info["station_outline"].x + 320,
+                    rect_info["station_outline"].y + 20,
+                    50,
+                    50,
+                ),
+                DTHRU_OUTLINE,
+            )
+            screen.blit(
+                order_icons[0],
+                (
+                    rect_info["station_outline"].x + 327,
+                    rect_info["station_outline"].y + 27,
+                ),
+            )
+            toggle2 = pygame.draw.rect(
+                screen,
+                RED,
+                (
+                    rect_info["station_outline"].x + 320,
+                    rect_info["station_outline"].y + 100,
+                    50,
+                    50,
+                ),
+            )
+            pygame.draw.rect(
+                screen,
+                WHITE,
+                (
+                    rect_info["station_outline"].x + 320,
+                    rect_info["station_outline"].y + 100,
+                    50,
+                    50,
+                ),
+                DTHRU_OUTLINE,
+            )
+            screen.blit(
+                order_icons[1],
+                (
+                    rect_info["station_outline"].x + 327,
+                    rect_info["station_outline"].y + 107,
+                ),
+            )
+            toggle3 = pygame.draw.rect(
+                screen,
+                RED,
+                (
+                    rect_info["station_outline"].x + 320,
+                    rect_info["station_outline"].y + 180,
+                    50,
+                    50,
+                ),
+            )
+            pygame.draw.rect(
+                screen,
+                WHITE,
+                (
+                    rect_info["station_outline"].x + 320,
+                    rect_info["station_outline"].y + 180,
+                    50,
+                    50,
+                ),
+                DTHRU_OUTLINE,
+            )
+            screen.blit(
+                order_icons[2],
+                (
+                    rect_info["station_outline"].x + 327,
+                    rect_info["station_outline"].y + 187,
+                ),
+            )
         # If the station status is hasn't been clicked:
-        if station_status[station_name]["status"] == 0:
+        if station_status[menu_name][station_name]["status"] == 0:
             # The start circle is drawn with its respective elements.
             pygame.draw.circle(
                 screen, GREEN, rect_info["button_outline"], button_radius
@@ -1126,18 +1376,57 @@ def creation_menu(
             # The traffic light is set to red and the status to standby for later use.
             light = redlight_sized
             creation_status = status_standby
-
+            # For every menu but drinks:
+            if (
+                menu_name != "Drinks"
+                and menu_name != "Make Grill"
+                and menu_name != "Make BFM"
+            ):
+                # The program checks if the first button was toggeled.
+                toggle = handle_events(event, "click", toggle1, "toggeled1", None)
+                if toggle == "toggeled1":
+                    # If it was, and the user is on the grill menu, the station is updated respectivley.
+                    if menu_name == "Grill":
+                        grill_names[creation_index] = "10:1"
+                        grill_creation[creation_index] = hugopatty_creation_icon
+                        grill_timers[creation_index] = 9000
+                    # Same goes for BFM.
+                    elif menu_name == "BFM":
+                        bfm_names[creation_index] = "Fries"
+                        bfm_creation[creation_index] = fries_creation_icon
+                        bfm_timers[creation_index] = 6000
+                # Same code repeats for the other buttons. This can't be made more efficent due to the different valeus for each and the need to go 1 by 1 through the buttons.
+                toggle = handle_events(event, "click", toggle2, "toggeled2", None)
+                if toggle == "toggeled2":
+                    if menu_name == "Grill":
+                        grill_names[creation_index] = "4:1"
+                        grill_creation[creation_index] = slammerpatty_creation_icon
+                        grill_timers[creation_index] = 9000
+                    elif menu_name == "BFM":
+                        bfm_names[creation_index] = "McBullets"
+                        bfm_creation[creation_index] = mcbullets_creation_icon
+                        bfm_timers[creation_index] = 7000
+                toggle = handle_events(event, "click", toggle3, "toggeled3", None)
+                if toggle == "toggeled3":
+                    if menu_name == "Grill":
+                        grill_names[creation_index] = "Angus"
+                        grill_creation[creation_index] = anguspatty_creation_icon
+                        grill_timers[creation_index] = 15000
+                    if menu_name == "BFM":
+                        bfm_names[creation_index] = "Chicken"
+                        bfm_creation[creation_index] = chicken_creation_icon
+                        bfm_timers[creation_index] = 8000
         # If an item is being made:
-        if station_status[station_name]["status"] == 1:
+        if station_status[menu_name][station_name]["status"] == 1:
             # The elapsed time is calculated for the timer to draw off.
             elapsed_time = current_time - (
-                station_status[station_name]["end_time"] - timer_duration
+                station_status[menu_name][station_name]["end_time"] - creation_time
             )
             # The draw timer function is called.
             draw_timer(
                 screen,
                 elapsed_time,
-                timer_duration,
+                creation_time,
                 rect_info["button_outline"],
                 button_radius,
             )
@@ -1146,7 +1435,7 @@ def creation_menu(
             creation_status = status_wait
 
         # If the item has been made:
-        if station_status[station_name]["status"] == 2:
+        if station_status[menu_name][station_name]["status"] == 2:
             # The text saying to click.
             screen.blit(
                 creation_click,
@@ -1174,9 +1463,12 @@ def creation_menu(
                 None,
             )
             # If it was:
-            if rect_info["status"] == 0 and station_status[station_name]["status"] == 2:
+            if (
+                rect_info["status"] == 0
+                and station_status[menu_name][station_name]["status"] == 2
+            ):
                 # Status is reverted to the original.
-                station_status[station_name]["status"] = 0
+                station_status[menu_name][station_name]["status"] = 0
                 # A pause timer is activated so the creation button isn't accidently clicked. A variable is set to the current station so it can have its quantity updated.
                 item_station = station_names[creation_index]
                 wait = 0
@@ -1208,7 +1500,58 @@ def creation_menu(
             (rect_info["station_outline"].x + 20, rect_info["station_outline"].y + 110),
         )
         creation_index += 1
-    return previous_event
+    # If the user wishes to go back, the handle events function checks if the button has been clicked.
+    previous_event = handle_events(event, "click", back, ProgramState.GAME_MENU, None)
+    if previous_event == ProgramState.GAME_MENU:
+        # Depending on if the program is in a creation menu or cooking menu, state = 5 also has to be done so the program knows to go back, due to the constant switching between current_state and state. Fixes a bug with the back button not working.
+        state = 5
+        return previous_event
+    # For every menu but drinks (because drinks can't switch to create) the below
+    # code executes.
+    if menu_name != "Drinks":
+        # 'skip' has the same function as 'pause' but they have to be seperate
+        # as they are used for different things at the same time. It prevents
+        # the button from being accidently clicked, like pause.
+        if not skip:
+            # If the menu is currently Grill:
+            if menu_name == "Grill":
+                # The program checks if the create button was clicked.
+                current_event = handle_events(
+                    event, "click", create, ProgramState.MAKE_GRILL, None
+                )
+                # If it was:
+                if current_event == ProgramState.MAKE_GRILL:
+                    # Skip and wait2 are reset and the change is returned to
+                    # the main loop.
+                    skip = True
+                    wait2 = 0
+                    return current_event
+            # Same code repeats with different variables. They have to be
+            # seperate to work and return properly.
+            if menu_name == "BFM":
+                current_event = handle_events(
+                    event, "click", create, ProgramState.MAKE_BFM, None
+                )
+                if current_event == ProgramState.MAKE_BFM:
+                    skip = True
+                    wait2 = 0
+                    return current_event
+            if menu_name == "Make Grill":
+                current_event = handle_events(
+                    event, "click", cook, ProgramState.GRILL, None
+                )
+                if current_event == ProgramState.GRILL:
+                    skip = True
+                    wait2 = 0
+                    return current_event
+            if menu_name == "Make BFM":
+                current_event = handle_events(
+                    event, "click", cook, ProgramState.BFM, None
+                )
+                if current_event == ProgramState.BFM:
+                    skip = True
+                    wait2 = 0
+                    return current_event
 
 
 # UNUSED FUNCTIONS ARE BELOW
@@ -1480,6 +1823,8 @@ while running:
     if current_state == ProgramState.DAY_STATS:
         current_state = part_time_day(screen)
     if state == 5:
+        pause = True
+        wait = 0
         screen.fill(BLACK)
         current_state = ingame_menu(screen, 1200, 700)
     if current_state == 6:
@@ -1505,11 +1850,116 @@ while running:
                 juice_creation_icon,
             ],
             ["Hugo\nJuice"],
-            5000,
+            [5000, 12000, 5000, 5000, 5000, 5000],
+        )
+    if current_state == 7:
+        screen.fill(BLACK)
+        state = creation_menu(
+            grill_names,
+            "Grill",
+            grill_menu_icon,
+            [
+                hugopatty_order_icon,
+                slammerpatty_order_icon,
+                anguspatty_order_icon,
+            ],
+            grill_creation,
+            [
+                "10:1",
+                "4:1",
+                "Angus",
+            ],
+            grill_timers,
+        )
+    if current_state == 8:
+        screen.fill(BLACK)
+        state = creation_menu(
+            bfm_names,
+            "BFM",
+            bfm_menu_icon,
+            [
+                fries_order_icon,
+                mcbullets_order_icon,
+                chicken_order_icon,
+            ],
+            bfm_creation,
+            [
+                "Fries",
+                "McBullets",
+                "Chicken",
+            ],
+            bfm_timers,
+        )
+    if state == 9:
+        screen.fill(BLACK)
+        current_state = creation_menu(
+            [
+                "Big Hugo",
+                "5/4 Slammer",
+                "Almighty Florida",
+                "Colossal H",
+                "2 5/4 Slammer",
+                "Keanu Krunch",
+            ],
+            "Make Grill",
+            grill_menu_icon,
+            [
+                bighugo_order_icon,
+                improperslammer_order_icon,
+                almightyflorida_order_icon,
+                colossalh_order_icon,
+                doubleimproperslammer_order_icon,
+                keanu_krunch_order_icon,
+            ],
+            [
+                bighugo_creation_icon,
+                improperslammer_creation_icon,
+                almightyflorida_creation_icon,
+                colossalh_creation_icon,
+                doubleimproperslammer_creation_icon,
+                keanu_krunch_creation_icon,
+            ],
+            [
+                "Big\nHugo",
+                "5/4\nSlammer",
+                "Almighty\nFlorida",
+                "Colossal H",
+                "2 5/4\nSlammer",
+                "Keanu\nKrunch",
+            ],
+            [3000, 3000, 3000, 4000, 4000, 4000],
+        )
+    if state == 10:
+        screen.fill(BLACK)
+        current_state = creation_menu(
+            [
+                "Suspicious Chicken",
+                "Suspicious Chicken",
+                "Suspicious Chicken",
+                "Chicken Little",
+                "Chicken Little",
+                "Chicken Little",
+            ],
+            "Make BFM",
+            bfm_menu_icon,
+            [
+                radioactivechicken_order_icon,
+                chickenlittle_order_icon,
+            ],
+            [
+                radioactivechicken_creation_icon,
+                radioactivechicken_creation_icon,
+                radioactivechicken_creation_icon,
+                chickenlittle_creation_icon,
+                chickenlittle_creation_icon,
+                chickenlittle_creation_icon,
+            ],
+            ["Suspicious\nChicken", "Chicken\nLittle"],
+            [3000, 3000, 3000, 4000, 4000, 4000],
         )
     # The display is constantly updated.
     pygame.display.flip()
     # The framerate is set to 30 to minimize system resources.
     pygame.time.Clock().tick(30)
-# Once the main loop ends, the code moves onto the next piece of code, which is this.
+# Once the main loop ends, the code moves onto the next piece of code, which is this.)
 pygame.quit()
