@@ -1,12 +1,17 @@
 from typing import Tuple
+
 # Importing pygame into the program
 import pygame
+
 # Used for distance calculations when checking mouse clicks.
 import math
+
 # Used for changing the windows onscreen position
 import os
+
 # Used to choose random items in the list.
 import random
+
 # The x and y of the windows position after the main menu.
 WINDOW_X: int = 25
 WINDOW_Y: int = 18
@@ -16,6 +21,7 @@ os.environ["SDL_VIDEO_WINDOW_POS"] = "%d,%d" % (WINDOW_X, WINDOW_Y)
 pygame.init()
 
 # PROGRAM STATES
+
 
 # These define what part of the program the user is up to, used for calling the
 # correct function corresponding to the program state.
@@ -31,6 +37,7 @@ class ProgramState:
     BFM: int = 8
     MAKE_GRILL: int = 9
     MAKE_BFM: int = 10
+
 
 # The state is initially set to the first phase so the program starts.
 current_state: int = ProgramState.GAME_OPEN
@@ -77,7 +84,7 @@ CREATED_ICON: tuple[int, int] = 130, 130
 # PREDEFINED VARIABLES
 
 # The desired screen dimensions.
-screen_width = PREGAME_SCREEN_WIDTH 
+screen_width = PREGAME_SCREEN_WIDTH
 screen_height = PREGRAME_SCREEN_HEIGHT
 # The current screen dimensions.
 current_screen_width = screen_width
@@ -207,7 +214,8 @@ orders: dict[str, int] = {
     "McBullets": 0,
     "Hugo Juice": 0,
 }
-
+# Checks the time when the game begun.
+collect_start_time: bool = False
 # CURRENTLY UNUSED VARIABLES (DELETE IF NOT NEEDED)
 
 # Colours of the circles in the game selection menu. Also used for the circle
@@ -606,6 +614,7 @@ def toggle_visibility(
             last_switch = start_switches
     return visible_local
 
+
 def timer(time_end: int) -> bool:
     """A timer for how long a station should remain in its status.
 
@@ -705,6 +714,13 @@ def ai_ordering():
         print("ORDERED")
         # The AI orders again.
         obtained_wait = False
+
+
+def time_remaining(initial_start: int):
+    current_time = pygame.time.get_ticks()
+    time = initial_start + 360000
+    time_left = time - current_time
+    print(time_left)
 
 
 # CORE GAME
@@ -833,13 +849,13 @@ def name_entry(screen, events) -> bool:
     # need to constantly change. last_switch and visible are again accessed to
     # ensure the toggle_visibility function works properly by defining them.
     global user_name, last_switch, visible, error, error_type, expiring_items
-    
+
     # The text is drawn.
     screen.blit(name_background, (0, 0))
     screen.blit(enter_name, (20, 50))
     screen.blit(enter_name_2, (40, 190))
     screen.blit(enter_name_3, (300, 290))
-    
+
     # This is the back buttons textures.
     back = pygame.draw.rect(screen, RED, (370, 800, 240, BUTTON2_HEIGHT))
     # This is the outline of the back button.
@@ -887,14 +903,14 @@ def name_entry(screen, events) -> bool:
         # stage, its value is returned.
         if previous_event:
             return previous_event
-        
+
     # If an error occurs:
     if error:
         # The visible function is called again, noting repeat is False.
         visible = toggle_visibility(last_switch, visible, 3000, False)
         # If the users error was they didn't enter a name:
         if error_type == "error_no_name":
-        # An error message is displayed.
+            # An error message is displayed.
             screen.blit(no_name, (200, 630))
         # If the users error was they didn't enter the correct name length:
         if error_type == "error_length":
@@ -933,9 +949,9 @@ def ingame_menu(screen, screen_width, screen_height) -> bool:
         current_screen_height = screen_height
     # The boxes holding the cars.
     pygame.draw.rect(screen, WHITE, (0, 0, 1200, 60), DTHRU_OUTLINE)
-    
+
     # ALL BELOW CODE IS TBR, ADD FOR LOOPS
-    
+
     # The cars themselves.
     screen.blit(car_sized, (150, 10))
     screen.blit(car_sized, (300, 10))
@@ -1220,6 +1236,7 @@ def display_menu_items(
                     # Cycles to the next item.
                     initial_index += 1
 
+
 def creation_menu(
     station_names: list[str],
     menu_name: str,
@@ -1257,7 +1274,6 @@ def creation_menu(
         patty_needed, \
         quantity_patty_needed, \
         log_expiry_time
-
 
     # A 2D Dictionary is used for keeping track of each menus station statuses
     # so they don't get muddled up. If a dictionary has not been created under
@@ -1835,6 +1851,7 @@ def creation_menu(
 
 # UNUSED FUNCTIONS ARE BELOW
 
+
 def choose_gamemode(screen) -> Tuple[Tuple[int, int, int], Tuple[int, int, int], bool]:
     screen.fill(BLACK)
     # These are the circles the user can click on containing info about the
@@ -1866,6 +1883,7 @@ def choose_gamemode(screen) -> Tuple[Tuple[int, int, int], Tuple[int, int, int],
         circle_colour_2 = (255, 255, 255)
     handle_events(event, "click", part_time, ProgramState.DAY_STATS)
     return circle_colour_1, circle_colour_2
+
 
 def part_time_day(
     screen,
@@ -1936,7 +1954,7 @@ def part_time_day(
     for event in pygame.event.get():
         if event.type == pygame.MOUSEBUTTONDOWN:
             if toggle_day.collidepoint(event.pos):
-                if today_stats is True: 
+                if today_stats is True:
                     today_stats = False
                     yesterday_stats = True
                 else:
@@ -1945,6 +1963,7 @@ def part_time_day(
     current_event = (handle_events("click", clock_in, ProgramState.GAME_MENU),)
     ProgramState.DAY_STATS
     return today_stats, yesterday_stats, current_event
+
 
 def calculate_stats(
     day: int,
@@ -1985,9 +2004,11 @@ def calculate_stats(
         toggle_text_x = 175
     return day, day_current, toggle_day_length, toggle_day_x, toggle_text_x
 
+
 # END OF UNUSED FUNCTIONS
 
 # EVENT HANDLING
+
 
 def handle_events(
     event,
@@ -2045,7 +2066,7 @@ def handle_events(
         else:
             return button_state
 
-    # If the caller needs to check if the user is hovering over something:        
+    # If the caller needs to check if the user is hovering over something:
     if keystroke_type == "hover":
         # If the mouse is hovering over a menu item, its outline is thickened.
         # Otherwise, it remains the same.
@@ -2054,7 +2075,7 @@ def handle_events(
         else:
             thickness: int = 5
         return thickness
-    
+
     # If the caller needs to check if the user is typing something:
     if keystroke_type == "type":
         if event.type == pygame.KEYDOWN:
@@ -2076,7 +2097,7 @@ def handle_events(
                     user_name = ""
         # If all is well, the user_name is returned so another function can use it.
         return user_name
-    
+
     # If the caller needs to check if the user pressed enter:
     if keystroke_type == "enter":
         if event.type == pygame.KEYDOWN:
@@ -2103,6 +2124,7 @@ def handle_events(
                     # If no errors are made then the desired state is returned.
                     return desired_state
 
+
 # This is the game loop responsible for calling the functions and receiving
 # the returned values, then using those returns to call a different function to
 # progress through the game.
@@ -2111,10 +2133,10 @@ while running:
     # allows it to be used globally.
     events = pygame.event.get()
     for event in events:
-    # If the user closes the window,
+        # If the user closes the window,
         if event.type == pygame.QUIT:
-        # The loop ends.
-            running = False   
+            # The loop ends.
+            running = False
     # If the game has been opened:
     if current_state == ProgramState.GAME_OPEN:
         # The corresponding function is called.
@@ -2149,6 +2171,9 @@ while running:
         screen.fill(BLACK)
         current_state = ingame_menu(screen, 1200, 700)
         begin_ordering = True
+        if not collect_start_time:
+            current_time = pygame.time.get_ticks()
+            collect_start_time = True
         # Gets rid of the current error message.
         visible = False
     if current_state == 6:
@@ -2283,6 +2308,7 @@ while running:
         )
     if begin_ordering:
         ai_ordering()
+        time_remaining(current_time)
     # The display is constantly updated.
     pygame.display.flip()
     # The framerate is set to 30 to minimize system resources.
