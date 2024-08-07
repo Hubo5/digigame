@@ -5,7 +5,8 @@ import pygame
 import math
 # Used for changing the windows onscreen position
 import os
-
+# Used to choose random items in the list.
+import random
 # The x and y of the windows position after the main menu.
 WINDOW_X: int = 25
 WINDOW_Y: int = 18
@@ -186,6 +187,12 @@ burger_type: dict[str, dict[str, int]] = {
 patty_needed: str = None
 quantity_patty_needed: int = None
 log_expiry_time: bool = False
+# Indicates whether the AI should begin ordering,
+begin_ordering: bool = False
+# Indicates if the AI has obtained a number for waiting to prevent constant looping.
+obtained_number: bool = False
+# The time to wait before placing an order.
+wait_order: int = 0
 # CURRENTLY UNUSED VARIABLES (DELETE IF NOT NEEDED)
 
 # Colours of the circles in the game selection menu. Also used for the circle
@@ -548,121 +555,10 @@ bfm_timers: list[int] = [
     8000,
 ]
 # FUNCTIONS
-def main_screen_now(screen) -> None:
-    """Display the core elements of the game screen.
 
-    Args:
-        screen: The current size of the game window.
-    """
-    # Draws the various elements on screen.
-    screen.blit(background, (0, 0))
-    screen.blit(main_menu_kiosk, (0, 35))
-    screen.blit(game_title, (325, -25))
-    screen.blit(logo_1, (400, 80))
-    screen.blit(logo_2, (199, 535))
-    screen.blit(version, (620, 840))
+# UTILITY
 
 
-def start_order_now(screen) -> bool:
-    """Display the start button for access to the main menu.
-
-    Args:
-        screen: The current size of the game window.
-
-    Returns:
-        bool: What game state the game should be in.
-    """
-    # Accesses the last_switch and visible variables outside the function
-    # so they can be used for visiblity.
-    global last_switch, visible
-    # Draws elements of the screen not affected by visibility.
-    screen.blit(kiosk_heading_1, (38, 55))
-    screen.blit(kiosk_heading_2, (48, 90))
-    screen.blit(hungry_hugo, (44, 180))
-    
-    # Calls the toggle_visibility function.
-    visible = toggle_visibility(last_switch, visible, 2000, True)
-    # If the toggle_visibility function returns true:
-    if visible:
-        # The elements are shown.
-        screen.blit(start_order_1, (50, 235))
-        screen.blit(start_order_2, (50, 285))
-        screen.blit(start_order_3, (65, 330))
-        screen.blit(start_order_4, (110, 378))
-        # The button to start the users order.
-        start_order_position = pygame.draw.rect(
-        screen, BLACK, (44, 240, 200, 200), OUTLINE_WIDTH)
-    if not visible:
-        # The button is still clickable, but isn't visible.
-        start_order_position = pygame.draw.rect(
-        screen, WHITE, (44, 240, 200, 200))
-    # The events are handled externally, checking if the user has clicked the
-    # start_order button, and if they did the desired state
-    # to move to is provided.
-    current_event = handle_events(
-        event, "click", start_order_position, ProgramState.MAIN_MENU, None
-    )
-    # The state of the game is returned to the main loop so the appropiate
-    # function can be called.
-    return current_event
-    
-
-def main_menu(screen) -> bool:
-    """The main menu where the user can choose what they want to do.
-
-    Args:
-        screen: The current size of the game window.
-
-    Returns:
-        bool: What game state the game should be in.
-    """
-    # The rectangles must be defined initially so the menu_box variables can
-    # draw from them and update thickness. They aren't drawn because the
-    # thickness has to be continously updated first and defined.
-    play_rect = pygame.Rect(40, 125, BUTTON2_WIDTH, BUTTON2_HEIGHT)
-    first_shift_rect = pygame.Rect(40, 191, BUTTON2_WIDTH, BUTTON2_HEIGHT_EXTENDED)
-    scoreboard_rect = pygame.Rect(40, 297, BUTTON2_WIDTH, BUTTON2_HEIGHT_EXTENDED)
-    settings_rect = pygame.Rect(40, 403, BUTTON2_WIDTH, BUTTON2_HEIGHT)
-
-    # The events are handled externally, checking if the user is hovering over
-    # a menu_box, using the rectangles defined above. No desired event is
-    # provided as the game state shouldn't change.
-    menu_box_1 = handle_events(event, "hover", play_rect, None, None)
-    menu_box_2 = handle_events(event, "hover", first_shift_rect, None, None)
-    menu_box_3 = handle_events(event, "hover", scoreboard_rect, None, None)
-    menu_box_4 = handle_events(event, "hover", settings_rect, None, None)
-
-    # The buttons are now drawn now the menu_boxes have been defined.
-    play = pygame.draw.rect(
-        screen, BLACK, play_rect, menu_box_1
-    )
-    first_shift = pygame.draw.rect(
-        screen, BLACK, first_shift_rect, menu_box_2
-    )
-    scoreboard = pygame.draw.rect(
-        screen, BLACK, scoreboard_rect, menu_box_3
-    )
-    settings = pygame.draw.rect(
-        screen, BLACK, settings_rect, menu_box_4
-        )
-    
-    # The text is drawn.
-    screen.blit(logo_3, (105, 50))
-    screen.blit(play_button, (45, 125))
-    screen.blit(tutorial_button_1, (45, 192))
-    screen.blit(tutorial_button_2, (45, 232))
-    screen.blit(scoreboard_button_1, (45, 297))
-    screen.blit(scoreboard_button_2, (45, 342))
-    screen.blit(setting_button, (47, 412))
-    screen.blit(play_icon_sized, (198, 125))
-    screen.blit(first_shift_icon_sized, (198, 215))
-    screen.blit(settings_icon_sized, (198, 405))
-    screen.blit(scoreboard_icon_sized, (198, 320))
-
-    # The event function checks if the user has clicked play.
-    current_event = handle_events(event, "click", play, ProgramState.ENTER_NAME, None)
-    return current_event
-        
 def toggle_visibility(
     last_switch_local: int, visible_local: bool, time_switch: int, repeat: bool
 ) -> bool:
@@ -778,6 +674,130 @@ def draw_timer(screen, elapsed_time: int, time_end: int, center, radius: int):
     # The text is made into a rect with its center being = to the circle center.
     text_centering = time_left_text.get_rect(center=center)
     screen.blit(time_left_text, text_centering)
+
+
+def ai_ordering():
+    global obtained_number, wait_order
+    current_time = pygame.time.get_ticks()
+    # The AI waits between 1 and 30 seconds. * 1000 converts to ms.
+    if not obtained_number:
+        wait_order = random.randint(1, 30) * 1000 + current_time
+        obtained_number = True
+        print(wait_order)
+    if timer(wait_order):
+        print("ORDERED")
+        obtained_number = False
+
+
+# CORE GAME
+
+
+def main_screen_now(screen) -> None:
+    """Display the core elements of the game screen.
+
+    Args:
+        screen: The current size of the game window.
+    """
+    # Draws the various elements on screen.
+    screen.blit(background, (0, 0))
+    screen.blit(main_menu_kiosk, (0, 35))
+    screen.blit(game_title, (325, -25))
+    screen.blit(logo_1, (400, 80))
+    screen.blit(logo_2, (199, 535))
+    screen.blit(version, (620, 840))
+
+
+def start_order_now(screen) -> bool:
+    """Display the start button for access to the main menu.
+
+    Args:
+        screen: The current size of the game window.
+
+    Returns:
+        bool: What game state the game should be in.
+    """
+    # Accesses the last_switch and visible variables outside the function
+    # so they can be used for visiblity.
+    global last_switch, visible
+    # Draws elements of the screen not affected by visibility.
+    screen.blit(kiosk_heading_1, (38, 55))
+    screen.blit(kiosk_heading_2, (48, 90))
+    screen.blit(hungry_hugo, (44, 180))
+
+    # Calls the toggle_visibility function.
+    visible = toggle_visibility(last_switch, visible, 2000, True)
+    # If the toggle_visibility function returns true:
+    if visible:
+        # The elements are shown.
+        screen.blit(start_order_1, (50, 235))
+        screen.blit(start_order_2, (50, 285))
+        screen.blit(start_order_3, (65, 330))
+        screen.blit(start_order_4, (110, 378))
+        # The button to start the users order.
+        start_order_position = pygame.draw.rect(
+            screen, BLACK, (44, 240, 200, 200), OUTLINE_WIDTH
+        )
+    if not visible:
+        # The button is still clickable, but isn't visible.
+        start_order_position = pygame.draw.rect(screen, WHITE, (44, 240, 200, 200))
+    # The events are handled externally, checking if the user has clicked the
+    # start_order button, and if they did the desired state
+    # to move to is provided.
+    current_event = handle_events(
+        event, "click", start_order_position, ProgramState.MAIN_MENU, None
+    )
+    # The state of the game is returned to the main loop so the appropiate
+    # function can be called.
+    return current_event
+
+
+def main_menu(screen) -> bool:
+    """The main menu where the user can choose what they want to do.
+
+    Args:
+        screen: The current size of the game window.
+
+    Returns:
+        bool: What game state the game should be in.
+    """
+    # The rectangles must be defined initially so the menu_box variables can
+    # draw from them and update thickness. They aren't drawn because the
+    # thickness has to be continously updated first and defined.
+    play_rect = pygame.Rect(40, 125, BUTTON2_WIDTH, BUTTON2_HEIGHT)
+    first_shift_rect = pygame.Rect(40, 191, BUTTON2_WIDTH, BUTTON2_HEIGHT_EXTENDED)
+    scoreboard_rect = pygame.Rect(40, 297, BUTTON2_WIDTH, BUTTON2_HEIGHT_EXTENDED)
+    settings_rect = pygame.Rect(40, 403, BUTTON2_WIDTH, BUTTON2_HEIGHT)
+
+    # The events are handled externally, checking if the user is hovering over
+    # a menu_box, using the rectangles defined above. No desired event is
+    # provided as the game state shouldn't change.
+    menu_box_1 = handle_events(event, "hover", play_rect, None, None)
+    menu_box_2 = handle_events(event, "hover", first_shift_rect, None, None)
+    menu_box_3 = handle_events(event, "hover", scoreboard_rect, None, None)
+    menu_box_4 = handle_events(event, "hover", settings_rect, None, None)
+
+    # The buttons are now drawn now the menu_boxes have been defined.
+    play = pygame.draw.rect(screen, BLACK, play_rect, menu_box_1)
+    first_shift = pygame.draw.rect(screen, BLACK, first_shift_rect, menu_box_2)
+    scoreboard = pygame.draw.rect(screen, BLACK, scoreboard_rect, menu_box_3)
+    settings = pygame.draw.rect(screen, BLACK, settings_rect, menu_box_4)
+
+    # The text is drawn.
+    screen.blit(logo_3, (105, 50))
+    screen.blit(play_button, (45, 125))
+    screen.blit(tutorial_button_1, (45, 192))
+    screen.blit(tutorial_button_2, (45, 232))
+    screen.blit(scoreboard_button_1, (45, 297))
+    screen.blit(scoreboard_button_2, (45, 342))
+    screen.blit(setting_button, (47, 412))
+    screen.blit(play_icon_sized, (198, 125))
+    screen.blit(first_shift_icon_sized, (198, 215))
+    screen.blit(settings_icon_sized, (198, 405))
+    screen.blit(scoreboard_icon_sized, (198, 320))
+
+    # The event function checks if the user has clicked play.
+    current_event = handle_events(event, "click", play, ProgramState.ENTER_NAME, None)
+    return current_event
 
 
 def name_entry(screen, events) -> bool:
@@ -2110,6 +2130,7 @@ while running:
         wait = 0
         screen.fill(BLACK)
         current_state = ingame_menu(screen, 1200, 700)
+        begin_ordering = True
         # Gets rid of the current error message.
         visible = False
     if current_state == 6:
@@ -2242,6 +2263,8 @@ while running:
             ["Suspicious\nChicken", "Chicken\nLittle"],
             [3000, 3000, 3000, 4000, 4000, 4000],
         )
+    if begin_ordering:
+        ai_ordering()
     # The display is constantly updated.
     pygame.display.flip()
     # The framerate is set to 30 to minimize system resources.
