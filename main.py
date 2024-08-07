@@ -193,8 +193,8 @@ begin_ordering: bool = False
 obtained_wait: bool = False
 # The time to wait before placing an order.
 wait_order: int = 0
-# Orders from the AI.
-orders: dict[str, int] = {
+# All the orders from the AI combined.
+total_items_required: dict[str, int] = {
     "Big Hugo": 0,
     "Francie Frenzy": 0,
     "5/4 Slammer": 0,
@@ -206,8 +206,29 @@ orders: dict[str, int] = {
     "Fries": 0,
     "McBullets": 0,
     "Hugo Juice": 0,
+    "10:1": 0,
+    "4:1": 0,
+    "Angus": 0,
+    "Chicken": 0,
 }
-
+# Each individual order. Becomes a 2D Dict.
+individual_orders = {}
+# Keeps track of the order number. Global variable.
+order_index: int = 0
+# The menu for the AI to order from.
+ordering_menu: list[str] = [
+    "Big Hugo",
+    "Francie Frenzy",
+    "5/4 Slammer",
+    "2 5/4 Slammer",
+    "Almighty Florida",
+    "Keanu Krunch",
+    "Suspicious Chicken",
+    "Chicken Little",
+    "Fries",
+    "McBullets",
+    "Hugo Juice",
+]
 # CURRENTLY UNUSED VARIABLES (DELETE IF NOT NEEDED)
 
 # Colours of the circles in the game selection menu. Also used for the circle
@@ -693,7 +714,12 @@ def draw_timer(screen, elapsed_time: int, time_end: int, center, radius: int):
 
 def ai_ordering():
     # Global variables used to prevent constant redefinition.
-    global obtained_wait, wait_order
+    global \
+        obtained_wait, \
+        wait_order, \
+        order_index, \
+        total_items_required, \
+        individual_orders
     current_time = pygame.time.get_ticks()
     # The AI waits between 1 and 30 seconds. * 1000 converts to ms.
     if not obtained_wait:
@@ -703,6 +729,38 @@ def ai_ordering():
     # If it is time for the AI to order:
     if timer(wait_order):
         print("ORDERED")
+        # The order number.
+        order_index += 1
+        # The order number is created.
+        order_number = f"Order {order_index}"
+        # A dict is made under it.
+        individual_orders[order_number] = {}
+        # The amount of items for the AI to order are chosen.
+        items_ordered = random.randint(1, 10)
+        # The amount of items left to select.
+        items_selected = items_ordered
+        while items_selected > 0:
+            # The amount of items to buy is randomly determined.
+            item_purchased = random.randint(0, 10)
+            # The item is determined using the index of the purchased item.
+            item_name = ordering_menu[item_purchased]
+            # If the item has not yet been ordered, it is added.
+            if item_name not in individual_orders[order_number]:
+                individual_orders[order_number][item_name] = 1
+            else:
+                # If it has been, it is added.
+                individual_orders[order_number][item_name] += 1
+            # The items left to order is reduced by 1.
+            items_selected -= 1
+            # The item is added to the total requirements.
+            total_items_required[item_name] += 1
+            # The patty requirements of the burger is located.
+            for patty_type, burger_stats in burger_type.items():
+                for burger_name, patty_requirements in burger_stats.items():
+                    if burger_name == item_name:
+                        # Using the patty type of the burger, it is updated with the requirements.
+                        total_items_required[patty_type] += patty_requirements
+        print(total_items_required)
         # The AI orders again.
         obtained_wait = False
 
