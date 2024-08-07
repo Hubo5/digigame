@@ -190,9 +190,24 @@ log_expiry_time: bool = False
 # Indicates whether the AI should begin ordering,
 begin_ordering: bool = False
 # Indicates if the AI has obtained a number for waiting to prevent constant looping.
-obtained_number: bool = False
+obtained_wait: bool = False
 # The time to wait before placing an order.
 wait_order: int = 0
+# Orders from the AI.
+orders: dict[str, int] = {
+    "Big Hugo": 0,
+    "Francie Frenzy": 0,
+    "5/4 Slammer": 0,
+    "2 5/4 Slammer": 0,
+    "Almighty Florida": 0,
+    "Keanu Krunch": 0,
+    "Suspicious Chicken": 0,
+    "Chicken Little": 0,
+    "Fries": 0,
+    "McBullets": 0,
+    "Hugo Juice": 0,
+}
+
 # CURRENTLY UNUSED VARIABLES (DELETE IF NOT NEEDED)
 
 # Colours of the circles in the game selection menu. Also used for the circle
@@ -677,16 +692,19 @@ def draw_timer(screen, elapsed_time: int, time_end: int, center, radius: int):
 
 
 def ai_ordering():
-    global obtained_number, wait_order
+    # Global variables used to prevent constant redefinition.
+    global obtained_wait, wait_order
     current_time = pygame.time.get_ticks()
     # The AI waits between 1 and 30 seconds. * 1000 converts to ms.
-    if not obtained_number:
+    if not obtained_wait:
         wait_order = random.randint(1, 30) * 1000 + current_time
-        obtained_number = True
-        print(wait_order)
+        # Only gets the obtained number once.
+        obtained_wait = True
+    # If it is time for the AI to order:
     if timer(wait_order):
         print("ORDERED")
-        obtained_number = False
+        # The AI orders again.
+        obtained_wait = False
 
 
 # CORE GAME
