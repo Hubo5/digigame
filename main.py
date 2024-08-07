@@ -200,8 +200,8 @@ begin_ordering: bool = False
 obtained_wait: bool = False
 # The time to wait before placing an order.
 wait_order: int = 0
-# Orders from the AI.
-orders: dict[str, int] = {
+# All the orders from the AI combined.
+total_items_required: dict[str, int] = {
     "Big Hugo": 0,
     "Francie Frenzy": 0,
     "5/4 Slammer": 0,
@@ -213,9 +213,108 @@ orders: dict[str, int] = {
     "Fries": 0,
     "McBullets": 0,
     "Hugo Juice": 0,
+    "10:1": 0,
+    "4:1": 0,
+    "Angus": 0,
+    "Chicken": 0,
 }
+# Each individual order. Becomes a 2D Dict.
+individual_orders = {}
+# Keeps track of the order number. Global variable.
+order_index: int = 0
+# The menu for the AI to order from.
+ordering_menu: list[str] = [
+    "Big Hugo",
+    "Francie Frenzy",
+    "5/4 Slammer",
+    "2 5/4 Slammer",
+    "Almighty Florida",
+    "Keanu Krunch",
+    "Suspicious Chicken",
+    "Chicken Little",
+    "Fries",
+    "McBullets",
+    "Hugo Juice",
+]
+# Various combos that the AI can order.
+combos: dict[str, dict[str, int]] = {
+    "The Classic": {"Big Hugo": 1, "Fries": 1, "Hugo Juice": 1},
+    "The HugoBox": {"Big Hugo": 2, "Fries": 2, "Hugo Juice": 2},
+    "The Achieved": {"5/4 Slammer": 1, "Fries": 1},
+    "The Merit": {"2 5/4 Slammer": 1, "Fries": 1},
+    "The Excellence": {"2 5/4 Slammer": 1, "Fries": 1, "Hugo Juice": 1, "McBullets": 1},
+    "Light Snack": {"McBullets": 1, "Fries": 1},
+    "The Biggie": {"Francie Frenzy": 1, "McBullets": 2, "Hugo Juice": 1},
+    "Anything Yellow": {"Suspicious Chicken": 1, "McBullets": 1, "Fries": 1},
+    "Yellow Is My Favourite Colour": {"Chicken Little": 1, "McBullets": 2, "Fries": 2},
+    "America": {"Almighty Florida": 2, "McBullets": 1},
+    "Keanu Badiger": {"Keanu Krunch": 2},
+    "I Love Hugo": {"Big Hugo": 4, "Hugo Juice": 4},
+    "Big Snack": {"Fries": 3, "McBullets": 3},
+    "Chicken Lover": {"Suspicious Chicken": 1, "Chicken Little": 1, "McBullets": 1},
+    "Pleaseburgercheese": {"Big Hugo": 1},
+    "Frugo": {"Big Hugo": 1, "Francie Frenzy": 1, "Fries": 2, "Hugo Juice": 2},
+    "Big And Small": {"5/4 Slammer": 2, "Big Hugo": 2, "McBullets": 3, "Hugo Juice": 4},
+    "Biden": {
+        "Almighty Florida": 2,
+        "Suspicious Chicken": 1,
+        "Fries": 2,
+        "Hugo Juice": 1,
+    },
+    "Basic Angus": {"Almighty Florida": 1, "Fries": 1, "Hugo Juice": 1},
+    "Advanced Keanu": {"Keanu Krunch": 1, "Fries": 1, "Hugo Juice": 1},
+    "Chicken Little": {"Chicken Little": 1, "McBullets": 1},
+    "Angry Chicken": {"Chicken Little": 2, "Suspicious Chicken": 1, "Keanu Krunch": 1},
+    "Demise Part 1": {
+        "Francie Frenzy": 1,
+        "Almighty Florida": 1,
+        "2 5/4 Slammer": 1,
+        "Fries": 4,
+    },
+    "Demise Part 2": {
+        "2 5/4 Slammer": 2,
+        "Hugo Juice": 3,
+        "McBullets": 3,
+        "Almighty Florida": 1,
+    },
+    "Demise Part 3": {
+        "Francie Frenzy": 1,
+        "2 5/4 Slammer": 1,
+        "Keanu Krunch": 1,
+        "Chicken Little": 1,
+        "Fries": 4,
+        "Hugo Juice": 4,
+    },
+    "Short people only": {
+        "Big Hugo": 1,
+        "5/4 Slammer": 1,
+        "Almighty Florida": 1,
+        "Suspicious Chicken": 1,
+        "McBullets": 4,
+        "Hugo Juice": 4,
+    },
+    "Maths Nerd": {"5/4 Slammer": 1, "2 5/4 Slammer": 1},
+    "Dropout": {"5/4 Slammer": 2, "McBullets": 2},
+    "Drunk": {"Hugo Juice": 8},
+    "Doom": {
+        "Big Hugo": 1,
+        "Francie Frenzy": 1,
+        "5/4 Slammer": 1,
+        "2 5/4 Slammer": 1,
+        "Almighty Florida": 1,
+        "Keanu Krunch": 1,
+        "Suspicious Chicken": 1,
+        "Chicken Little": 1,
+        "Fries": 3,
+        "McBullets": 3,
+        "Hugo Juice": 6,
+    },
+}
+<<<<<<< HEAD
 # Checks the time when the game begun.
 collect_start_time: bool = False
+=======
+>>>>>>> semistructured-ordering-proto4.2
 # CURRENTLY UNUSED VARIABLES (DELETE IF NOT NEEDED)
 
 # Colours of the circles in the game selection menu. Also used for the circle
@@ -702,7 +801,14 @@ def draw_timer(screen, elapsed_time: int, time_end: int, center, radius: int):
 
 def ai_ordering():
     # Global variables used to prevent constant redefinition.
-    global obtained_wait, wait_order
+    global \
+        obtained_wait, \
+        wait_order, \
+        order_index, \
+        total_items_required, \
+        individual_orders, \
+        combos
+
     current_time = pygame.time.get_ticks()
     # The AI waits between 1 and 30 seconds. * 1000 converts to ms.
     if not obtained_wait:
@@ -712,6 +818,55 @@ def ai_ordering():
     # If it is time for the AI to order:
     if timer(wait_order):
         print("ORDERED")
+        # The order number.
+        order_index += 1
+        # The order number is created.
+        order_number = f"Order {order_index}"
+        # A dict is made under it.
+        individual_orders[order_number] = {}
+        # A combo is randomly chosen and converted into a list so it can be accessed.
+        random_combo_name = random.choice(list(combos.keys()))
+        # The combo is chosen.
+        random_combo = combos[random_combo_name]
+        # The combo is added to the total items list, and the patty is also added.
+        for burger, quantity in random_combo.items():
+            total_items_required[burger] += quantity
+            individual_orders[order_number][burger] = quantity
+            for patty_type, burger_stats in burger_type.items():
+                for burger_name, patty_requirements in burger_stats.items():
+                    if burger_name == burger:
+                        # Using the patty type of the burger, it is updated with the requirements.
+                        total_items_required[patty_type] += patty_requirements
+        # The amount of items for the AI to order are chosen.
+        items_ordered = random.randint(1, 4)
+        # 1 in 3 chance of ordering random items.
+        order_random_items_check = random.randint(1, 3)
+        if order_random_items_check == 1:
+            print("RANDOM ADDED!")
+            # The amount of items left to select.
+            items_selected = items_ordered
+            while items_selected > 0:
+                # The amount of items to buy is randomly determined.
+                item_purchased = random.randint(0, 10)
+                # The item is determined using the index of the purchased item.
+                item_name = ordering_menu[item_purchased]
+                # If the item has not yet been ordered, it is added.
+                if item_name not in individual_orders[order_number]:
+                    individual_orders[order_number][item_name] = 1
+                else:
+                    # If it has been, it is added.
+                    individual_orders[order_number][item_name] += 1
+                # The items left to order is reduced by 1.
+                items_selected -= 1
+                # The item is added to the total requirements.
+                total_items_required[item_name] += 1
+                # The patty requirements of the burger is located.
+                for patty_type, burger_stats in burger_type.items():
+                    for burger_name, patty_requirements in burger_stats.items():
+                        if burger_name == item_name:
+                            # Using the patty type of the burger, it is updated with the requirements.
+                            total_items_required[patty_type] += patty_requirements
+        print(individual_orders)
         # The AI orders again.
         obtained_wait = False
 
