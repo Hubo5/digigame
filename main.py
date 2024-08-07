@@ -310,11 +310,6 @@ combos: dict[str, dict[str, int]] = {
         "Hugo Juice": 6,
     },
 }
-<<<<<<< HEAD
-# Checks the time when the game begun.
-collect_start_time: bool = False
-=======
->>>>>>> semistructured-ordering-proto4.2
 # CURRENTLY UNUSED VARIABLES (DELETE IF NOT NEEDED)
 
 # Colours of the circles in the game selection menu. Also used for the circle
@@ -869,13 +864,6 @@ def ai_ordering():
         print(individual_orders)
         # The AI orders again.
         obtained_wait = False
-
-
-def time_remaining(initial_start: int):
-    current_time = pygame.time.get_ticks()
-    time = initial_start + 360000
-    time_left = time - current_time
-    print(time_left)
 
 
 # CORE GAME
@@ -2326,9 +2314,6 @@ while running:
         screen.fill(BLACK)
         current_state = ingame_menu(screen, 1200, 700)
         begin_ordering = True
-        if not collect_start_time:
-            current_time = pygame.time.get_ticks()
-            collect_start_time = True
         # Gets rid of the current error message.
         visible = False
     if current_state == 6:
@@ -2463,7 +2448,6 @@ while running:
         )
     if begin_ordering:
         ai_ordering()
-        time_remaining(current_time)
     # The display is constantly updated.
     pygame.display.flip()
     # The framerate is set to 30 to minimize system resources.
