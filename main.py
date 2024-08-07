@@ -824,35 +824,6 @@ def ai_ordering():
                     if burger_name == burger:
                         # Using the patty type of the burger, it is updated with the requirements.
                         total_items_required[patty_type] += patty_requirements
-        # The amount of items for the AI to order are chosen.
-        items_ordered = random.randint(1, 4)
-        # 1 in 3 chance of ordering random items.
-        order_random_items_check = random.randint(1, 3)
-        if order_random_items_check == 1:
-            print("RANDOM ADDED!")
-            # The amount of items left to select.
-            items_selected = items_ordered
-            while items_selected > 0:
-                # The amount of items to buy is randomly determined.
-                item_purchased = random.randint(0, 10)
-                # The item is determined using the index of the purchased item.
-                item_name = ordering_menu[item_purchased]
-                # If the item has not yet been ordered, it is added.
-                if item_name not in individual_orders[order_number]:
-                    individual_orders[order_number][item_name] = 1
-                else:
-                    # If it has been, it is added.
-                    individual_orders[order_number][item_name] += 1
-                # The items left to order is reduced by 1.
-                items_selected -= 1
-                # The item is added to the total requirements.
-                total_items_required[item_name] += 1
-                # The patty requirements of the burger is located.
-                for patty_type, burger_stats in burger_type.items():
-                    for burger_name, patty_requirements in burger_stats.items():
-                        if burger_name == item_name:
-                            # Using the patty type of the burger, it is updated with the requirements.
-                            total_items_required[patty_type] += patty_requirements
         print(individual_orders)
         # The AI orders again.
         obtained_wait = False
