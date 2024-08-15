@@ -81,6 +81,8 @@ XS_NAVIGATION_ICON: tuple[int, int] = 30, 30
 # For display on the creation menus.
 ORDER_ICON: tuple[int, int] = 35, 35
 CREATED_ICON: tuple[int, int] = 130, 130
+# The amount of time to wait before moving 1 space.
+WAIT_INTERVAL: int = 1
 # PREDEFINED VARIABLES
 
 # The desired screen dimensions.
@@ -111,7 +113,7 @@ error: bool = False
 error_type: str = ""
 # The positions of the boxes in the drive thru.
 dthru_box_x_positions: list[int] = [120, 270, 420, 570, 720, 870]
-dthru_text_x_positions: list[int] = [175, 325, 475, 625, 775, 925, 1090]
+dthru_text_x_positions: list[int] = [1090, 925, 775, 625, 475, 325, 175]
 # The positions of the circles for the total stock.
 total_stock_circle_x_positions: list[int] = [640, 740, 840, 940]
 total_stock_circle_y_positions: list[int] = [230, 410]
@@ -243,10 +245,42 @@ combos: dict[str, dict[str, int]] = {
     "The Achieved": {"5/4 Slammer": 1, "Fries": 1},
     "The Merit": {"2 5/4 Slammer": 1, "Fries": 1},
     "The Excellence": {"2 5/4 Slammer": 1, "Fries": 1, "Hugo Juice": 1, "McBullets": 1},
+    "Francie": {
+        "Francie Frenzy": 1,
+        "Suspicious Chicken": 1,
+        "McBullets": 2,
+        "Fries": 1,
+    },
+    "Devious David": {
+        "Almighty Florida": 1,
+        "Chicken Little": 1,
+        "Big Hugo": 2,
+        "Fries": 3,
+        "McBullets": 1,
+        "Hugo Juice": 2,
+    },
+    "Invincible Ira": {
+        "Keanu Krunch": 1,
+        "Fries": 4,
+        "Chicken Little": 2,
+        "Hugo Juice": 2,
+    },
+    "Ravenous Rueben": {
+        "5/4 Slammer": 3,
+        "Big Hugo": 2,
+        "Hugo Juice": 3,
+        "McBullets": 4,
+        "Fries": 6,
+    },
     "Light Snack": {"McBullets": 1, "Fries": 1},
-    "The Biggie": {"Francie Frenzy": 1, "McBullets": 2, "Hugo Juice": 1},
-    "Anything Yellow": {"Suspicious Chicken": 1, "McBullets": 1, "Fries": 1},
-    "Yellow Is My Favourite Colour": {"Chicken Little": 1, "McBullets": 2, "Fries": 2},
+    "The Biggie": {"Francie Frenzy": 1, "McBullets": 2, "Hugo Juice": 1, "Fries": 3},
+    "Anything Yellow": {
+        "Suspicious Chicken": 1,
+        "McBullets": 1,
+        "Fries": 1,
+        "Chicken Little": 1,
+    },
+    "Yellow Is My Favourite Colour": {"Chicken Little": 2, "McBullets": 2, "Fries": 2},
     "America": {"Almighty Florida": 2, "McBullets": 1},
     "Keanu Badiger": {"Keanu Krunch": 2},
     "I Love Hugo": {"Big Hugo": 4, "Hugo Juice": 4},
@@ -265,19 +299,19 @@ combos: dict[str, dict[str, int]] = {
     "Advanced Keanu": {"Keanu Krunch": 1, "Fries": 1, "Hugo Juice": 1},
     "Chicken Little": {"Chicken Little": 1, "McBullets": 1},
     "Angry Chicken": {"Chicken Little": 2, "Suspicious Chicken": 1, "Keanu Krunch": 1},
-    "Demise Part 1": {
+    "Seb's Synopsis": {
         "Francie Frenzy": 1,
         "Almighty Florida": 1,
         "2 5/4 Slammer": 1,
         "Fries": 4,
     },
-    "Demise Part 2": {
+    "Skibidi Toilet": {
         "2 5/4 Slammer": 2,
         "Hugo Juice": 3,
         "McBullets": 3,
         "Almighty Florida": 1,
     },
-    "Demise Part 3": {
+    "Threesome": {
         "Francie Frenzy": 1,
         "2 5/4 Slammer": 1,
         "Keanu Krunch": 1,
@@ -285,7 +319,7 @@ combos: dict[str, dict[str, int]] = {
         "Fries": 4,
         "Hugo Juice": 4,
     },
-    "Short people only": {
+    "Nui": {
         "Big Hugo": 1,
         "5/4 Slammer": 1,
         "Almighty Florida": 1,
@@ -297,7 +331,6 @@ combos: dict[str, dict[str, int]] = {
     "Dropout": {"5/4 Slammer": 2, "McBullets": 2},
     "Drunk": {"Hugo Juice": 8},
     "Doom": {
-        "Big Hugo": 1,
         "Francie Frenzy": 1,
         "5/4 Slammer": 1,
         "2 5/4 Slammer": 1,
@@ -309,7 +342,60 @@ combos: dict[str, dict[str, int]] = {
         "McBullets": 3,
         "Hugo Juice": 6,
     },
+    "Big Rowe": {
+        "Big Hugo": 2,
+        "Francie Frenzy": 2,
+        "5/4 Slammer": 2,
+        "2 5/4 Slammer": 2,
+        "Keanu Krunch": 2,
+        "Suspicious Chicken": 2,
+        "Chicken Little": 2,
+        "Fries": 6,
+        "McBullets": 6,
+        "Hugo Juice": 12,
+    },
 }
+# Used to check if the time since the game has started has been obtained.
+obtained_start_time: bool = False
+# The time remaining in the game.
+time_left: int = 0
+# Checks if an order was placed.
+ordered: bool = False
+# The coordinates for the cars to move to.
+car_coords: list[int] = [
+    1065,
+    900,
+    750,
+    600,
+    450,
+    300,
+    150,
+    -50,
+    -50,
+    -50,
+    -50,
+    -50,
+]
+# The 2D dict of cars.
+cars = {}
+# The amount of current orders.
+total_orders: int = 0
+# The order number used to identify the car.
+order_number: int = 0
+# The list of orders stored in a list for the cars.
+orders_list = None
+# The amount of items in an order. Global.
+total_items: int = 0
+# Used to animate the cars moving.
+last_tick = pygame.time.get_ticks()
+# The amount of excess cars.
+excess: int = 0
+# Checks if a car has been deleted.
+deleted: bool = False
+# Signifies the car is currently being deleted.
+deleting: bool = False
+# Position of the danger boxes.
+danger_box_positions: list[int] = [885, 735, 585, 435, 285, 135]
 # CURRENTLY UNUSED VARIABLES (DELETE IF NOT NEEDED)
 
 # Colours of the circles in the game selection menu. Also used for the circle
@@ -390,10 +476,8 @@ length_incorrect = start_order_font_xs.render(
 )
 back_name_text = main_menu_options.render("BACK", True, DARK_YELLOW)
 # Ingame menu
-time_text_1 = body_font.render("VIEW", True, WHITE)
 time_text_2 = body_font.render("EXCESS", True, WHITE)
 time_text_3 = body_font.render("CARS", True, WHITE)
-time_text_4 = stats_font.render("time", True, WHITE)
 time_text_5 = main_menu_options.render("SERVE!", True, WHITE)
 current_order_heading = dthru_heading_font.render("CURRENT ORDER", True, YELLOW)
 total_stock_heading = dthru_heading_font.render("TOTAL STOCK", True, YELLOW)
@@ -415,18 +499,12 @@ total_requirements = heading_font.render("Total:", True, WHITE)
 button_start = dthru_heading_font.render("CREATE!", True, WHITE)
 creation_click = status_font.render("CLICK!", True, WHITE)
 # TBR (Testing only, To Be Removed)
-burger_notdone_text = body_font.render("burger", True, RED)
-burger_done_text = body_font.render("burger", True, GREEN)
-fries_text = body_font.render("fries", True, GREEN)
-mcbullets_text = body_font.render("mcbullets", True, RED)
-drink_text = body_font.render("hugo juice", True, GREEN)
 counter_1 = quantity_font.render("3/5", True, WHITE)
 burger_name = burger_name_font.render("Chicken Little", True, WHITE)
 patty_name = burger_name_font.render("10:1", True, WHITE)
 patty_name2 = burger_name_font.render("Chicken", True, WHITE)
 current_car_time = number_font.render("0:00", True, WHITE)
 average_car_time = number_font.render("0:00", True, WHITE)
-time_left = number_font.render("6:00", True, WHITE)
 grill_heading = burger_name_font.render("Grill", True, WHITE)
 drinks_heading = burger_name_font.render("Drinks", True, WHITE)
 bfm_heading = burger_name_font.render("BFM", True, WHITE)
@@ -485,6 +563,11 @@ view = pygame.image.load("images/view.png")  # Reference: Icon by Prosymbols
 redlight = pygame.image.load("images/redlight.png")
 yellowlight = pygame.image.load("images/yellowlight.png")
 greenlight = pygame.image.load("images/greenlight.png")
+miniscule_danger = pygame.image.load("images/danger1.PNG")
+low_danger = pygame.image.load("images/danger2.PNG")
+moderate_danger = pygame.image.load("images/danger3.PNG")
+high_danger = pygame.image.load("images/danger4.PNG")
+extreme_danger = pygame.image.load("images/danger5.PNG")
 
 # Menu items (all from Freepik)
 big_hugo = pygame.image.load("images/menu items/big hugo.png")
@@ -679,7 +762,7 @@ bfm_timers: list[int] = [
 def toggle_visibility(
     last_switch_local: int, visible_local: bool, time_switch: int, repeat: bool
 ) -> bool:
-    """Controls the visibility of a desired element.
+    """Control the visibility of a desired element.
 
     Args:
         last_switch_local (int): The last time the visibility was toggled.
@@ -693,19 +776,23 @@ def toggle_visibility(
     """
     # The global variable is accessed so it can be updated.
     global last_switch
+
     # The program begins counting from when the funtion was called.
     start_switches = pygame.time.get_ticks()
+
     # If the timer minus the last visibility switch is greater than the desired
     # time to stay on screen:
     if start_switches - last_switch_local > time_switch:
         # Visibility is changed to none.
         visible_local = not visible_local
+
         # If the visibility should be repeatedly toggled:
         if repeat:
             # The last switch variable is changed to the amount of time the game
             # has been opened for. The global variable is accessed so the
             # argument provided by the function calling it can be altered.
             last_switch = start_switches
+
     return visible_local
 
 
@@ -724,16 +811,19 @@ def timer(time_end: int) -> bool:
         return time_start >= time_end
 
 
-def expiry():
+def expiry() -> None:
     """
-    Checks if an item on the menu has expired.
+    Check if an item on the menu has expired.
     """
     global expiring_items, total_stock_items
+
     if expiring_items != {}:
-        # The first value of the list is got, then 20 seconds is added to it (the expiry time).
+        # The first value of the list is got, then 20 seconds is added to it
+        # (the expiry time).
         first_value = next(iter(expiring_items.values())) + 20000
         # The first key is aquired.
         first_key = next(iter(expiring_items.keys()))
+
         # If the timer has expired:
         if timer(first_value):
             # Using the key, the item which has expired is reduced by 1.
@@ -742,8 +832,8 @@ def expiry():
             del expiring_items[first_key]
 
 
-def draw_timer(screen, elapsed_time: int, time_end: int, center, radius: int):
-    """This function draws a circle which disappears as time passes.
+def draw_timer(screen, elapsed_time: int, time_end: int, center, radius: int) -> None:
+    """Draw a circle which disappears as time passes.
 
     Args:
         screen: The surface to be drawn on.
@@ -761,6 +851,7 @@ def draw_timer(screen, elapsed_time: int, time_end: int, center, radius: int):
     # and converts it into an angle in radians.
     angle = 2 * math.pi * (remaining_time / time_end)
     # If the angle isn't a full circle:
+
     if angle < 2 * math.pi:
         # Start point is set to the top of the circle.
         start_angle = -math.pi / 2
@@ -771,16 +862,19 @@ def draw_timer(screen, elapsed_time: int, time_end: int, center, radius: int):
         # A list of all the points to draw between.
         points = []
         # This loop uses trigonometry to get each point for each segment.
+
         for i in range(num_segments + 1):
             theta = start_angle + (end_angle - start_angle) * i / num_segments
             x = center[0] + radius * math.cos(theta)
             y = center[1] + radius * math.sin(theta)
             # Points are added to the list.
             points.append((x, y))
+
         # If there is more than 1 point remaining:
         if len(points) > 1:
             # The lines creating the circle are drawn.
             pygame.draw.lines(screen, WHITE, False, points, 6)
+
     # The text for time left is converted to seconds, and a max is again used
     # to prevent errors.
     time_left = max(0, remaining_time // 1000)
@@ -794,22 +888,28 @@ def draw_timer(screen, elapsed_time: int, time_end: int, center, radius: int):
     screen.blit(time_left_text, text_centering)
 
 
-def ai_ordering():
-    # Global variables used to prevent constant redefinition.
+def ai_ordering() -> None:
+    """The AI ordering system."""
+    # Global variables used to prevent constant redefinition,
+    # as well as update orders.
     global \
         obtained_wait, \
         wait_order, \
         order_index, \
         total_items_required, \
         individual_orders, \
-        combos
+        combos, \
+        ordered, \
+        current_time
 
-    current_time = pygame.time.get_ticks()
+    ordered = False
+
     # The AI waits between 1 and 30 seconds. * 1000 converts to ms.
     if not obtained_wait:
         wait_order = random.randint(1, 30) * 1000 + current_time
         # Only gets the obtained number once.
         obtained_wait = True
+
     # If it is time for the AI to order:
     if timer(wait_order):
         print("ORDERED")
@@ -819,51 +919,288 @@ def ai_ordering():
         order_number = f"Order {order_index}"
         # A dict is made under it.
         individual_orders[order_number] = {}
-        # A combo is randomly chosen and converted into a list so it can be accessed.
+        # A combo is randomly chosen and converted into a list so it can be
+        # accessed.
         random_combo_name = random.choice(list(combos.keys()))
         # The combo is chosen.
         random_combo = combos[random_combo_name]
-        # The combo is added to the total items list, and the patty is also added.
+
+        # The combo is added to the total items list, and the patty is also
+        # added.
         for burger, quantity in random_combo.items():
             total_items_required[burger] += quantity
             individual_orders[order_number][burger] = quantity
+
             for patty_type, burger_stats in burger_type.items():
                 for burger_name, patty_requirements in burger_stats.items():
                     if burger_name == burger:
-                        # Using the patty type of the burger, it is updated with the requirements.
+                        # Using the patty type of the burger, it is updated with
+                        # the requirements.
                         total_items_required[patty_type] += patty_requirements
+
         # The amount of items for the AI to order are chosen.
         items_ordered = random.randint(1, 4)
         # 1 in 3 chance of ordering random items.
         order_random_items_check = random.randint(1, 3)
+
         if order_random_items_check == 1:
             print("RANDOM ADDED!")
             # The amount of items left to select.
             items_selected = items_ordered
+
             while items_selected > 0:
                 # The amount of items to buy is randomly determined.
                 item_purchased = random.randint(0, 10)
                 # The item is determined using the index of the purchased item.
                 item_name = ordering_menu[item_purchased]
+
                 # If the item has not yet been ordered, it is added.
                 if item_name not in individual_orders[order_number]:
                     individual_orders[order_number][item_name] = 1
                 else:
                     # If it has been, it is added.
                     individual_orders[order_number][item_name] += 1
+
                 # The items left to order is reduced by 1.
                 items_selected -= 1
                 # The item is added to the total requirements.
                 total_items_required[item_name] += 1
+
                 # The patty requirements of the burger is located.
                 for patty_type, burger_stats in burger_type.items():
                     for burger_name, patty_requirements in burger_stats.items():
                         if burger_name == item_name:
-                            # Using the patty type of the burger, it is updated with the requirements.
+                            # Using the patty type of the burger, it is updated
+                            # with the requirements.
                             total_items_required[patty_type] += patty_requirements
-        print(individual_orders)
+
         # The AI orders again.
         obtained_wait = False
+        # Signifies to the cars that an order has been placed.
+        ordered = True
+        print(individual_orders)
+
+
+def game_time(initial_start: int) -> int:
+    """Keeps track of how long is left of the game.
+
+    Args:
+        initial_start (int): When the game begun.
+
+    Returns:
+        time_left (int): The time left in the game.
+    """
+    global current_time
+
+    # The time the game begun, plus 6 minutes (the duration of the game.)
+    begin_time = initial_start + 360000
+    # Seconds are calculated and converted.
+    seconds = (begin_time - current_time) // 1000
+    # How many minutes are left.
+    minutes = seconds // 60
+    # Remaining seconds are calculated.
+    remaining_seconds = seconds % 60
+    # Elements are combined.
+    time_left = f"{minutes}:{remaining_seconds}"
+    return time_left
+
+
+def display_cars(display: bool) -> None:
+    """Display cars representing orders.
+
+    Args:
+        display (bool): Whether to display the cars or not.
+    """
+    global \
+        ordered, \
+        individual_orders, \
+        cars, \
+        total_orders, \
+        orders_list, \
+        total_items, \
+        car_coords, \
+        last_tick, \
+        excess, \
+        deleted, \
+        order_number, \
+        current_time
+
+    # If an order was placed:
+    if ordered:
+        total_items = 0
+        # The amount of orders there are is measured from the orders dict.
+        total_orders = len(individual_orders)
+        order_number += 1
+        # The orders are converted into a list so they can be accessed with
+        # index.
+        orders_list = list(individual_orders.keys())
+        # As index begins with 0 in python, the order to assign to the car is
+        # targeted by making it a index, using the total orders -1.
+        aquire_key = orders_list[total_orders - 1]
+        # The specific order is then targeted with this index.
+        order_stats = individual_orders[aquire_key]
+
+        # For all the burger names and amount ordered:
+        for burger_name, burger_value in order_stats.items():
+            # If the burger is a double:
+            if (
+                burger_name == "Francie Frenzy"
+                or burger_name == "2 5/4 Slammer"
+                or burger_name == "Keanu Krunch"
+                or burger_name == "Chicken Little"
+            ):
+                # Its order value is doubled.
+                total_items += burger_value * 2
+            # Otherwise it remains the same.
+            else:
+                total_items += burger_value
+
+        # A dict is made for the current car, named using the amount of orders
+        # placed.
+        cars[order_number] = {}
+        # Order total for the car is defined.
+        print(total_items)
+        cars[order_number]["order total"] = total_items
+        # x initially begins as -50.
+        cars[order_number]["x"] = -50
+        # Initial start time for the car timer.
+        cars[order_number]["car start time"] = current_time
+        # The danger meter is set for the order.
+        cars[order_number]["danger"] = danger_meter(total_items)
+        # The amount of cars currently waiting is calculated.
+        total_cars = len(cars) - 1
+
+        excess = total_cars - 6
+        if excess < 0:
+            excess = 0
+
+        # The target for the car to move is defined using the car number in
+        # the line and the list of car coordinates.
+        cars[order_number]["target"] = car_coords[total_cars]
+        # This controls the car movement and the last time it moved.
+        cars[order_number]["last tick"] = pygame.time.get_ticks()
+
+    # For all the car numbers and their stats:
+    for car_number, car_stats in cars.items():
+        cars[car_number]["car time"] = body_font.render(
+            (car_time((cars[car_number]["car start time"]), False)),
+            True,
+            (car_colour((car_time((cars[car_number]["car start time"]), True)))),
+        )
+
+        # If the car needs to move again, defined using the wait interval:
+        if current_time - cars[car_number]["last tick"] >= WAIT_INTERVAL:
+            # If the car hasn't reached its target:
+            if cars[car_number]["x"] < cars[car_number]["target"]:
+                # It moves by 5.
+                cars[car_number]["x"] += 5
+                # Last tick is reset so the car can move again.
+                cars[car_number]["last_tick"] = current_time
+
+    # If the cars should be displayed:
+    if display:
+        timer_index: int = 0
+        # Each one is displayed:
+        for car_number, car_stats in cars.items():
+            if timer_index < 7:
+                screen.blit(car_sized, (car_stats["x"], 10))
+                screen.blit(
+                    car_stats["car time"], (dthru_text_x_positions[timer_index], 60)
+                )
+                if timer_index != 0:
+                    screen.blit(
+                        car_stats["danger"],
+                        (danger_box_positions[timer_index - 1], 100),
+                    )
+            timer_index += 1
+
+    # If a car has been deleted:
+    if deleted:
+        delete_index: int = 0
+        # Total cars is redefined, as well as excess cars.
+        total_cars = len(cars) - 1
+        excess = total_cars - 6
+        if excess < 0:
+            excess = 0
+
+        for car_number, car_stats in cars.items():
+            # Targets of all cars are updated accordingly using an index.
+            car_stats["target"] = car_coords[delete_index]
+            print(car_stats["target"])
+            # Update stops.
+            deleted = False
+            delete_index += 1
+
+
+def car_time(initial_start: int, return_seconds: bool):
+    """Timer for each car.
+
+    Args:
+        initial_start (int): The time when the order was placed.
+        return_seconds (bool): If the function should only return seconds.
+
+    Returns:
+        The car time in the drive thru.
+    """
+    global current_time
+    # Time in ms is calculated.
+    time = current_time - initial_start
+    # Converted to seconds.
+    seconds = time // 1000
+    # Seconds converted to minutes.
+    minutes = seconds // 60
+    # Seconds converted into seconds in a minute.
+    current_seconds = seconds % 60
+    # A variable is made with the current time.
+    car_time = f"{minutes}:{current_seconds}"
+    # If the current time should be returned:
+    if not return_seconds:
+        return car_time
+    # Otherwise, only seconds are returned.
+    else:
+        return seconds
+
+
+def car_colour(time: int):
+    """Colour of the car timer.
+
+    Args:
+        time (int): Car time in the drive thru.
+
+    Returns:
+        The desired colour.
+    """
+    # Depending on the time, a colour is returned.
+    if time < 30:
+        colour = WHITE
+    if time >= 30:
+        colour = ORANGE
+    if time >= 50:
+        colour = RED
+    return colour
+
+
+def danger_meter(order_total):
+    """Calculate danger of the order using size.
+
+    Args:
+        order_total: How big the order is.
+
+    Returns:
+        An image displaying danger.
+    """
+    # Depending on order size, an image of the order size is returned.
+    if order_total <= 5:
+        danger = miniscule_danger
+    if order_total > 5 and order_total <= 9:
+        danger = low_danger
+    if order_total > 9 and order_total <= 13:
+        danger = moderate_danger
+    if order_total > 13 and order_total <= 17:
+        danger = high_danger
+    if order_total > 17:
+        danger = extreme_danger
+    return danger
 
 
 # CORE GAME
@@ -896,6 +1233,7 @@ def start_order_now(screen) -> bool:
     # Accesses the last_switch and visible variables outside the function
     # so they can be used for visiblity.
     global last_switch, visible
+
     # Draws elements of the screen not affected by visibility.
     screen.blit(kiosk_heading_1, (38, 55))
     screen.blit(kiosk_heading_2, (48, 90))
@@ -917,6 +1255,7 @@ def start_order_now(screen) -> bool:
     if not visible:
         # The button is still clickable, but isn't visible.
         start_order_position = pygame.draw.rect(screen, WHITE, (44, 240, 200, 200))
+
     # The events are handled externally, checking if the user has clicked the
     # start_order button, and if they did the desired state
     # to move to is provided.
@@ -1023,6 +1362,7 @@ def name_entry(screen, events) -> bool:
         current_event = handle_events(
             event, "enter", None, ProgramState.GAME_MENU, None
         )
+
         # If the handle_events function returns one of these errors instead of
         # the desired state:
         if current_event == "error_no_name" or current_event == "error_length":
@@ -1037,6 +1377,7 @@ def name_entry(screen, events) -> bool:
             # The program updates last_switch with the new time since the error
             # was made.
             last_switch = pygame.time.get_ticks()
+
         # Only if current_event is the desired state will it return its value,
         # otherwise there would be nothing to return and an error would occur as
         # current_event can't always be returned.
@@ -1062,6 +1403,7 @@ def name_entry(screen, events) -> bool:
         if not visible:
             # The loop ends, and the error messages stop displaying.
             error = False
+
     # A font is assigned to the users name here because it changes constantly.
     username_input = name_font.render(user_name, True, DARK_YELLOW)
     # This is the users input.
@@ -1080,7 +1422,13 @@ def ingame_menu(screen, screen_width, screen_height) -> bool:
         total_stock_circle_x_positions, \
         total_stock_circle_y_positions, \
         menu_list, \
-        money
+        money, \
+        time_left, \
+        excess, \
+        cars, \
+        deleted, \
+        deleting
+
 
     # The below code fixes a flickering bug with content onscreen.
     # If the desired screen dimensions aren't the current dimensions:
@@ -1090,97 +1438,72 @@ def ingame_menu(screen, screen_width, screen_height) -> bool:
         # The current dimensions are now updated to be the same as the desired.
         current_screen_width = screen_width
         current_screen_height = screen_height
-    # The boxes holding the cars.
+
+    # The box holding the cars.
     pygame.draw.rect(screen, WHITE, (0, 0, 1200, 60), DTHRU_OUTLINE)
-
-    # ALL BELOW CODE IS TBR, ADD FOR LOOPS
-
-    # The cars themselves.
-    screen.blit(car_sized, (150, 10))
-    screen.blit(car_sized, (300, 10))
-    screen.blit(car_sized, (450, 10))
-    screen.blit(car_sized, (600, 10))
-    screen.blit(car_sized, (750, 10))
-    screen.blit(car_sized, (900, 10))
-    screen.blit(car_sized, (1065, 10))
-    # The box for viewing excess cars.
-    pygame.draw.rect(screen, WHITE, (0, 0, 120, 150), DTHRU_OUTLINE)
-    pygame.draw.rect(screen, DARK_YELLOW, (10, 10, 100, 40))
-    screen.blit(time_text_1, (30, 10))
+    # Excess cars.
+    excess_font = number_font.render(str(excess), True, WHITE)
+    screen.blit(excess_font, (45, 0))
     screen.blit(time_text_2, (18, 60))
     screen.blit(time_text_3, (30, 100))
+
     # The boxes for each section on the drive thru.
     for x in dthru_box_x_positions:
         pygame.draw.rect(screen, WHITE, (x, 0, 150, 150), DTHRU_OUTLINE)
     pygame.draw.rect(screen, WHITE, (1020, 0, 180, 150), DTHRU_OUTLINE)
-    # The text for the boxes in the drive thru.
-    for x in dthru_text_x_positions:
-        screen.blit(time_text_4, (x, 60))
-    screen.blit(time_text_5, (1020, 90))
-    # The box containing how big the order is.
-    # Box 1.
-    pygame.draw.rect(screen, WHITE, (135, 100, 120, 40), DTHRU_OUTLINE)
-    pygame.draw.rect(screen, GREEN, (135, 100, 24, 40))
-    pygame.draw.rect(screen, WHITE, (159, 100, 24, 40), DTHRU_OUTLINE)
-    pygame.draw.rect(screen, WHITE, (183, 100, 24, 40), DTHRU_OUTLINE)
-    pygame.draw.rect(screen, WHITE, (207, 100, 24, 40), DTHRU_OUTLINE)
-    pygame.draw.rect(screen, WHITE, (231, 100, 24, 40), DTHRU_OUTLINE)
-    # Box 2.
-    pygame.draw.rect(screen, WHITE, (135 + 150, 100, 120, 40), DTHRU_OUTLINE)
-    pygame.draw.rect(screen, GREEN, (135 + 150, 100, 24, 40))
-    pygame.draw.rect(screen, GREEN, (159 + 150, 100, 24, 40))
-    pygame.draw.rect(screen, YELLOW, (183 + 150, 100, 24, 40))
-    pygame.draw.rect(screen, WHITE, (207 + 150, 100, 24, 40), DTHRU_OUTLINE)
-    pygame.draw.rect(screen, WHITE, (231 + 150, 100, 24, 40), DTHRU_OUTLINE)
-    # Box 3.
-    pygame.draw.rect(screen, WHITE, (135 + 300, 100, 120, 40), DTHRU_OUTLINE)
-    pygame.draw.rect(screen, GREEN, (135 + 300, 100, 24, 40))
-    pygame.draw.rect(screen, GREEN, (159 + 300, 100, 24, 40))
-    pygame.draw.rect(screen, WHITE, (183 + 300, 100, 24, 40), DTHRU_OUTLINE)
-    pygame.draw.rect(screen, WHITE, (207 + 300, 100, 24, 40), DTHRU_OUTLINE)
-    pygame.draw.rect(screen, WHITE, (231 + 300, 100, 24, 40), DTHRU_OUTLINE)
-    # Box 4.
-    pygame.draw.rect(screen, WHITE, (135 + 450, 100, 120, 40), DTHRU_OUTLINE)
-    pygame.draw.rect(screen, GREEN, (135 + 450, 100, 24, 40))
-    pygame.draw.rect(screen, GREEN, (159 + 450, 100, 24, 40))
-    pygame.draw.rect(screen, YELLOW, (183 + 450, 100, 24, 40))
-    pygame.draw.rect(screen, RED, (207 + 450, 100, 24, 40))
-    pygame.draw.rect(screen, RED, (231 + 450, 100, 24, 40))
-    # Box 5.
-    pygame.draw.rect(screen, WHITE, (135 + 600, 100, 120, 40), DTHRU_OUTLINE)
-    pygame.draw.rect(screen, GREEN, (135 + 600, 100, 24, 40))
-    pygame.draw.rect(screen, GREEN, (159 + 600, 100, 24, 40))
-    pygame.draw.rect(screen, YELLOW, (183 + 600, 100, 24, 40))
-    pygame.draw.rect(screen, RED, (207 + 600, 100, 24, 40))
-    pygame.draw.rect(screen, WHITE, (231 + 600, 100, 24, 40), DTHRU_OUTLINE)
-    # Box 6.
-    pygame.draw.rect(screen, WHITE, (135 + 750, 100, 120, 40), DTHRU_OUTLINE)
-    pygame.draw.rect(screen, GREEN, (135 + 750, 100, 24, 40))
-    pygame.draw.rect(screen, GREEN, (159 + 750, 100, 24, 40))
-    pygame.draw.rect(screen, WHITE, (183 + 750, 100, 24, 40), DTHRU_OUTLINE)
-    pygame.draw.rect(screen, WHITE, (207 + 750, 100, 24, 40), DTHRU_OUTLINE)
-    pygame.draw.rect(screen, WHITE, (231 + 750, 100, 24, 40), DTHRU_OUTLINE)
+
+    # The serve button. A rect is aquired so it can be clicked.
+    serve = time_text_5.get_rect()
+    serve.topleft = (1020, 90)
+    screen.blit(time_text_5, serve)
+    served = handle_events(event, "click", serve, "clicked", None)
+
+    # If there are orders:
+    if cars:
+        # If the serve button was clicked:
+        if served == "clicked":
+            # Served car as the first in the list.
+            served_car = next(iter(cars))
+            # It is moved offscreen.
+            cars[served_car]["target"] = 1250
+            # The deleting process begins.
+            deleting = True
+        # These need to be split up so that even if the user stops clicking the
+        # program will delete the car.
+
+        if deleting:
+            # Served car needs to be redefined.
+            served_car = next(iter(cars))
+            # The order to be deleted is also defined.
+            served_order = next(iter(individual_orders))
+            # If the car has reached its target:
+            if cars[served_car]["x"] == 1250:
+                # Its info is deleted, and control is handed to the display cars
+                # function to update the rest of the cars.
+                del cars[served_car]
+                del individual_orders[served_order]
+                deleted = True
+                deleting = False
+
+    # ALL BELOW CODE IS TBR, ADD FOR LOOPS
 
     # The current order box.
     pygame.draw.rect(screen, WHITE, (0, 150, 570, 550), DTHRU_OUTLINE)
     screen.blit(current_order_heading, (160, 150))
     # The box containing the current order in text.
-    pygame.draw.rect(screen, WHITE, (0, 180, 570, 143), DTHRU_OUTLINE)
-    # Burger display section.
-    pygame.draw.rect(screen, RED, (0, 180, 570, 110), DTHRU_OUTLINE)
-    # Example order.
-    # For 10:1, 4:1, Angus, chicken patties on each row.
-    screen.blit(burger_notdone_text, (5, 175))
-    screen.blit(burger_done_text, (5, 200))
-    screen.blit(burger_notdone_text, (5, 225))
-    screen.blit(burger_done_text, (5, 250))
-    # Fries and nuggets.
-    pygame.draw.rect(screen, YELLOW, (0, 290, 390, 30), DTHRU_OUTLINE)
-    screen.blit(fries_text, (5, 285))
-    screen.blit(mcbullets_text, (170, 285))
-    # Hugo Juice.
-    pygame.draw.rect(screen, BLUE, (390, 290, 180, 30), DTHRU_OUTLINE)
-    screen.blit(drink_text, (395, 285))
+
+    # x diff in circles = 100 for everything
+    # 1
+    # -130 from everything (first line 370)
+    pygame.draw.circle(screen, WHITE, (80, 240), 40, DTHRU_OUTLINE)
+    screen.blit(improper_slammer_sized, (50, 338))
+    screen.blit(burger_name, (40, 410))
+    screen.blit(counter_1, (65, 430))
+    # 2
+    pygame.draw.circle(screen, WHITE, (80, 500), 40, DTHRU_OUTLINE)
+    screen.blit(improper_slammer_sized, (50, 468))
+    screen.blit(burger_name, (40, 540))
+    screen.blit(counter_1, (65, 560))
 
     # The currently needed stock display.
     pygame.draw.circle(screen, WHITE, (80, 370), 40, DTHRU_OUTLINE)
@@ -1245,10 +1568,12 @@ def ingame_menu(screen, screen_width, screen_height) -> bool:
     # The box containing the section name.
     pygame.draw.line(screen, WHITE, (570, 180), (1020, 180), DTHRU_OUTLINE)
     screen.blit(total_stock_heading, (700, 150))
+
     # A for loop drawing all of the circles for the total stock.
     for y in total_stock_circle_y_positions:
         for x in total_stock_circle_x_positions:
             pygame.draw.circle(screen, WHITE, (x, y), 35, DTHRU_OUTLINE)
+
     # A function is called used to increase efficency.
     # Text for all the circles.
     display_menu_items([615, 715, 815, 915], [265, 445], 0, 7, "text")
@@ -1264,9 +1589,9 @@ def ingame_menu(screen, screen_width, screen_height) -> bool:
     display_menu_items([612, 772, 932], [640], 12, 14, "text")
 
     # This is the navigation section.
-    # These need to be updated constantly as the user earns
-    # and loses money.
+    # These need to be updated constantly as the variables change.
     money_earnt = number_font.render("$" + str(money), True, WHITE)
+    time_left_font = number_font.render(str(time_left), True, WHITE)
     pygame.draw.rect(screen, WHITE, (1020, 150, 180, 550), DTHRU_OUTLINE)
     pygame.draw.line(screen, WHITE, (1020, 180), (1200, 180), DTHRU_OUTLINE)
     screen.blit(navigation_heading, (1023, 150))
@@ -1275,9 +1600,10 @@ def ingame_menu(screen, screen_width, screen_height) -> bool:
     screen.blit(average_car_heading, (1070, 270))
     screen.blit(average_car_time, (1055, 290))
     screen.blit(money_heading, (1050, 350))
-    screen.blit(money_earnt, (1050, 370))
+    screen.blit(money_earnt, (1040, 370))
     screen.blit(time_heading, (1065, 430))
-    screen.blit(time_left, (1055, 450))
+    screen.blit(time_left_font, (1055, 450))
+
     # Buttons for navigating menus.
     grill = pygame.draw.rect(screen, RED, (1040, 510, 55, 55))
     pygame.draw.rect(screen, WHITE, (1040, 510, 55, 55), 4)
@@ -1285,15 +1611,18 @@ def ingame_menu(screen, screen_width, screen_height) -> bool:
     pygame.draw.rect(screen, WHITE, (1125, 510, 55, 55), 4)
     bfm = pygame.draw.rect(screen, DARK_YELLOW, (1040, 590, 140, 35))
     pygame.draw.rect(screen, WHITE, (1040, 590, 140, 35), 4)
+
     # Icons.
     screen.blit(grill_icon, (1047, 518))
     screen.blit(drinks_icon, (1132, 518))
     screen.blit(fries_icon, (1075, 590))
     screen.blit(nuggets_icon, (1110, 590))
+
     # Button descriptions.
     screen.blit(grill_heading, (1055, 565))
     screen.blit(drinks_heading, (1132, 565))
     screen.blit(bfm_heading, (1097, 620))
+
     # For each menu button, the program checks if it has been clicked.
     # If it has been, its value is returned. Otherwise, it checks if another
     # button was clicked.
@@ -1308,6 +1637,7 @@ def ingame_menu(screen, screen_width, screen_height) -> bool:
     current_event = handle_events(event, "click", bfm, ProgramState.BFM, None)
     if current_event == ProgramState.BFM:
         return current_event
+
     # Item expiry is checked. If the list isn't empty:
     expiry()
     # As menu_list is the variable being used to display the items, it is updated.
@@ -1320,7 +1650,7 @@ def display_menu_items(
     initial_index: int,
     max_index: int,
     display_type: str,
-):
+) -> None:
     """Displays the menu images and text for the total stock.
 
     Args:
@@ -1335,7 +1665,8 @@ def display_menu_items(
     """
     # The menu in text and image form need to be accessed so the function knows
     # what to display using indexing.
-    global menu, menu_images
+    global menu_images
+
     # A nested for loop is used to display everything in a grid format.
     for y in y_positions:
         for x in x_positions:
@@ -1369,6 +1700,7 @@ def display_menu_items(
                     )
                     # The count is increased so a new variable can be displayed.
                     initial_index += 1
+
                 # If the image needs to be displayed:
                 if display_type == "image":
                     # The current image to be obtained is taken from the global
@@ -1416,7 +1748,9 @@ def creation_menu(
         error, \
         patty_needed, \
         quantity_patty_needed, \
-        log_expiry_time
+        log_expiry_time, \
+        current_time
+
 
     # A 2D Dictionary is used for keeping track of each menus station statuses
     # so they don't get muddled up. If a dictionary has not been created under
@@ -1432,9 +1766,11 @@ def creation_menu(
     pygame.draw.line(screen, WHITE, (358, 0), (358, 150))
     # The line dividing the total and current requirements.
     pygame.draw.line(screen, WHITE, (358, 75), (1200, 75))
+
     # Ensures the menu text is centered.
     name_width = (menu.get_width() - 78) / 2
     screen.blit(menu, (135 - name_width, 10))
+
     # Displays menu icons.
     screen.blit(menu_image, (10, 12))
     screen.blit(menu_image, (280, 12))
@@ -1445,6 +1781,7 @@ def creation_menu(
     # Text for the back button, drawn after so the button doesn't cover it,
     screen.blit(back_name_sized, (25, 83))
     screen.blit(back_name_text_xs, (70, 90))
+
     if menu_name != "Drinks":
         if menu_name != "Make Grill" and menu_name != "Make BFM":
             # This is the create buttons textures.
@@ -1551,9 +1888,6 @@ def creation_menu(
 
     for station_name, rect_info in station_bases.items():
         # For each rectangle, its value is accessed and utilized.
-        # The current time is documented so the program knows when to stop the
-        # timer once activated.
-        current_time = pygame.time.get_ticks()
         # A variable is set to the current station so it can have its quantity updated.
         item_station = station_names[creation_index]
         # The time to make each item is stored from the provided values and indexing
@@ -1574,6 +1908,7 @@ def creation_menu(
             pause = False
         if wait2 > 20:
             skip = False
+
         # The local status variable is defined by using the event handling to
         # check if the circle has been clicked. If inputs aren't paused:
         if not pause:
@@ -1587,6 +1922,7 @@ def creation_menu(
                 rect_info["status"],
                 create_button=True,
             )
+
         # If the local variable is changed to 1 but the global one hasn't been
         # changed yet:
         if (
@@ -1702,6 +2038,7 @@ def creation_menu(
                     rect_info["station_outline"].y + 187,
                 ),
             )
+
         # If the station status is hasn't been clicked:
         if station_status[menu_name][station_name]["status"] == 0:
             # If the user doesn't have enough patties:
@@ -1718,6 +2055,7 @@ def creation_menu(
                 # The error message is stopped when the visiblity timer runs out.
                 if not visible:
                     error = False
+
             station_status[menu_name][station_name]["check_patty_requirements"] = True
             # The start circle is drawn with its respective elements.
             pygame.draw.circle(
@@ -1737,6 +2075,7 @@ def creation_menu(
             # later use.
             light = redlight_sized
             creation_status = status_standby
+
             # For every menu but drinks:
             if (
                 menu_name != "Drinks"
@@ -1780,6 +2119,7 @@ def creation_menu(
                         bfm_names[creation_index] = "Chicken"
                         bfm_creation[creation_index] = chicken_creation_icon
                         bfm_timers[creation_index] = 8000
+
         # If an item is being made:
         if station_status[menu_name][station_name]["status"] == 1:
             # The program checks if the burger has the correct patty
@@ -1789,13 +2129,17 @@ def creation_menu(
                 if menu_name == "Make Grill" or menu_name == "Make BFM":
                     # For each patty type, and the burgers stats:
                     for patty_type, burger_stats in burger_type.items():
-                        # For the burger name and its required amount of patties:
+                        # For the burger name and its required amount of
+                        # patties:
                         for burger_name, patty_requirements in burger_stats.items():
-                            # The current station is individually targeted by checking the current item station name.
+                            # The current station is individually targeted by
+                            # checking the current item station name.
                             if burger_name == item_station:
-                                # If the requirements are greater than what the user has:
+                                # If the requirements are greater than what the
+                                # user has:
                                 if patty_requirements > total_stock_items[patty_type]:
-                                    # The specific patty needed is defined for code in status 0. (display)
+                                    # The specific patty needed is defined for
+                                    # code in status 0. (display)
                                     patty_needed = patty_type
                                     # The quantity needed is calculated.
                                     quantity_patty_needed = (
@@ -1805,7 +2149,8 @@ def creation_menu(
                                     # The program alerts itself of the error.
                                     visible = True
                                     error = True
-                                    # Used to correctly display the error for 3 seconds.
+                                    # Used to correctly display the error for 3
+                                    # seconds.
                                     last_switch = pygame.time.get_ticks()
                                     # Status is returned to 0.
                                     station_status[menu_name][station_name][
@@ -1813,7 +2158,8 @@ def creation_menu(
                                     ] = 0
                                 # If the user has the correct amount of patties:
                                 else:
-                                    # The program stops checking if that station needs its patties checked.
+                                    # The program stops checking if that station
+                                    # needs its patties checked.
                                     station_status[menu_name][station_name][
                                         "check_patty_requirements"
                                     ] = False
@@ -1851,11 +2197,14 @@ def creation_menu(
                 station_status[menu_name][station_name]["expiry_time"] = (
                     current_time + 5000
                 )
-                # The program no longer logs the expiry time, as it only needs it once.
+                # The program no longer logs the expiry time, as it only
+                # needs it once.
                 log_expiry_time = False
+
             # If the item has expired:
             if timer(station_status[menu_name][station_name]["expiry_time"]):
                 station_status[menu_name][station_name]["status"] = 0
+
             # The text saying to click.
             screen.blit(
                 creation_click,
@@ -1875,6 +2224,7 @@ def creation_menu(
             # Text is changed.
             light = greenlight_sized
             creation_status = status_ready
+
             # Checks if the item was clicked or not.
             rect_info["status"] = handle_events(
                 event,
@@ -1884,6 +2234,7 @@ def creation_menu(
                 None,
                 None,
             )
+
             # If it was:
             if (
                 rect_info["status"] == 0
@@ -1929,6 +2280,7 @@ def creation_menu(
             (rect_info["station_outline"].x + 20, rect_info["station_outline"].y + 110),
         )
         creation_index += 1
+
     # If the user wishes to go back, the handle events function checks
     # if the button has been clicked.
     previous_event = handle_events(event, "click", back, ProgramState.GAME_MENU, None)
@@ -1939,6 +2291,7 @@ def creation_menu(
         # with the back button not working.
         state = 5
         return previous_event
+
     # For every menu but drinks (because drinks can't switch to create) the
     # below code executes.
     if menu_name != "Drinks":
@@ -1990,6 +2343,10 @@ def creation_menu(
                     wait2 = 0
                     visible = False
                     return current_event
+
+
+def current_order_display():
+    global individual_orders
 
 
 # UNUSED FUNCTIONS ARE BELOW
@@ -2181,6 +2538,7 @@ def handle_events(
     """
     # The user name is globally accessed so it can be continously updated.
     global user_name
+
     # If the caller needs to check if a button was clicked:
     if keystroke_type == "click":
         if event.type == pygame.MOUSEBUTTONDOWN:
@@ -2272,6 +2630,8 @@ def handle_events(
 # the returned values, then using those returns to call a different function to
 # progress through the game.
 while running:
+    # Current time is calculated for the program to draw off.
+    current_time = pygame.time.get_ticks()
     # A variable is defined as the pygame event enabler for cleanliness, and
     # allows it to be used globally.
     events = pygame.event.get()
@@ -2280,6 +2640,7 @@ while running:
         if event.type == pygame.QUIT:
             # The loop ends.
             running = False
+
     # If the game has been opened:
     if current_state == ProgramState.GAME_OPEN:
         # The corresponding function is called.
@@ -2290,6 +2651,7 @@ while running:
         # phase. So state and current_state are constantly interchanged so the
         # program functions correctly.
         state = start_order_now(screen)
+
     # As the variables in the ProgramState class have been defined as ints,
     # the program checks if the variables corresponding number has
     # been returned.
@@ -2299,13 +2661,16 @@ while running:
         main_screen_now(screen)
         # Variables interchange.
         current_state = main_menu(screen)
+
     if current_state == 2:
         screen.fill(BLACK)
         state = name_entry(screen, events)
+
     if current_state == ProgramState.CHOOSE_GAMEMODE:
         current_state = choose_gamemode(screen)
     if current_state == ProgramState.DAY_STATS:
         current_state = part_time_day(screen)
+
     if state == 5:
         # Prevents the user from accidently clicking a station.
         pause = True
@@ -2313,9 +2678,15 @@ while running:
         wait = 0
         screen.fill(BLACK)
         current_state = ingame_menu(screen, 1200, 700)
+        # Signifies the game has started.
         begin_ordering = True
+        # Start time is aquired.
+        if not obtained_start_time:
+            obtain_time = pygame.time.get_ticks()
+            obtained_start_time = True
         # Gets rid of the current error message.
         visible = False
+
     if current_state == 6:
         screen.fill(BLACK)
         state = creation_menu(
@@ -2339,8 +2710,9 @@ while running:
                 juice_creation_icon,
             ],
             ["Hugo\nJuice"],
-            [5000, 12000, 5000, 5000, 5000, 5000],
+            [5000, 5000, 5000, 5000, 5000, 5000],
         )
+
     if current_state == 7:
         screen.fill(BLACK)
         state = creation_menu(
@@ -2360,6 +2732,7 @@ while running:
             ],
             grill_timers,
         )
+
     if current_state == 8:
         screen.fill(BLACK)
         state = creation_menu(
@@ -2379,6 +2752,7 @@ while running:
             ],
             bfm_timers,
         )
+
     if state == 9:
         screen.fill(BLACK)
         current_state = creation_menu(
@@ -2418,6 +2792,7 @@ while running:
             ],
             [3000, 3000, 3000, 4000, 4000, 4000],
         )
+
     if state == 10:
         screen.fill(BLACK)
         current_state = creation_menu(
@@ -2446,8 +2821,16 @@ while running:
             ["Suspicious\nChicken", "Chicken\nLittle"],
             [3000, 3000, 3000, 4000, 4000, 4000],
         )
+
+    # The AI begins ordering, the ingame timer begins, and cars start running.
     if begin_ordering:
         ai_ordering()
+        time_left = game_time(obtain_time)
+        if state == 5:
+            display_cars(True)
+        else:
+            display_cars(False)
+
     # The display is constantly updated.
     pygame.display.flip()
     # The framerate is set to 30 to minimize system resources.
