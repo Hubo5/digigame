@@ -401,6 +401,8 @@ deleting: bool = False
 danger_box_positions: list[int] = [885, 735, 585, 435, 285, 135]
 # Contains what is in the current order. Global variable used for checking whats in the order. It is a list aquired with a key.
 order_stats = []
+# Global dict to assign orders to combos so they can be displayed.
+order_combo: dict[str, str] = {}
 # CURRENTLY UNUSED VARIABLES (DELETE IF NOT NEEDED)
 
 # Colours of the circles in the game selection menu. Also used for the circle
@@ -453,6 +455,7 @@ status_heading_font = pygame.font.Font("fonts/important button.ttf", 16)
 status_font = pygame.font.Font("fonts/important button.ttf", 11)
 item_font = pygame.font.Font("fonts/body text.ttf", 11)
 time_remaining_font = pygame.font.Font("fonts/important button.ttf", 25)
+combo_font = pygame.font.Font("fonts/important button.ttf", 35)
 
 # This is the text displayed in the game.
 # First main menu screen
@@ -465,6 +468,7 @@ start_order_2 = start_order_font_xs.render("ORDER", True, DARK_YELLOW)
 start_order_3 = start_order_font.render("HERE", True, DARK_YELLOW)
 start_order_4 = start_order_font.render("!!!", True, DARK_YELLOW)
 version = heading_font.render("VERSION: PROTO 4.1", True, RED)
+
 # Second main menu screen
 play_button = main_menu_options.render("PLAY", True, DARK_YELLOW)
 tutorial_button_1 = main_menu_options.render("FIRST", True, DARK_YELLOW)
@@ -472,6 +476,7 @@ tutorial_button_2 = main_menu_options.render("SHIFT", True, DARK_YELLOW)
 scoreboard_button_1 = main_menu_options_xs.render("SCORE", True, DARK_YELLOW)
 scoreboard_button_2 = main_menu_options_xs2.render("BOARD", True, DARK_YELLOW)
 setting_button = main_menu_options_xs3.render("SETTING", True, DARK_YELLOW)
+
 # Making a name
 enter_name = title_font.render("Enter the name", True, YELLOW)
 enter_name_2 = title_font_xs.render("of your McHugo's", True, YELLOW)
@@ -481,6 +486,7 @@ length_incorrect = start_order_font_xs.render(
     "Name must be between 3-25 characters", True, RED
 )
 back_name_text = main_menu_options.render("BACK", True, DARK_YELLOW)
+
 # Ingame menu
 time_text_2 = body_font.render("EXCESS", True, WHITE)
 time_text_3 = body_font.render("CARS", True, WHITE)
@@ -934,7 +940,8 @@ def ai_ordering() -> None:
         individual_orders, \
         combos, \
         ordered, \
-        current_time
+        current_time, \
+        order_combo
 
     ordered = False
 
@@ -1007,6 +1014,12 @@ def ai_ordering() -> None:
                             # Using the patty type of the burger, it is updated
                             # with the requirements.
                             total_items_required[patty_type] += patty_requirements
+
+            # The combo name is assigned to a dict logging each orders combo with a "+" next to it to signify a random combo has been added.
+            order_combo[order_number] = random_combo_name + "+"
+        else:
+            # Otherwise, it is added normally.
+            order_combo[order_number] = random_combo_name
 
         # The AI orders again.
         obtained_wait = False
@@ -1465,7 +1478,6 @@ def ingame_menu(screen, screen_width, screen_height) -> bool:
         deleted, \
         deleting
 
-
     # The below code fixes a flickering bug with content onscreen.
     # If the desired screen dimensions aren't the current dimensions:
     if (screen_width, screen_height) != (current_screen_width, current_screen_height):
@@ -1533,7 +1545,6 @@ def ingame_menu(screen, screen_width, screen_height) -> bool:
     pygame.draw.rect(screen, WHITE, (0, 150, 570, 550), DTHRU_OUTLINE)
     screen.blit(current_order_heading, (160, 150))
     pygame.draw.line(screen, WHITE, (0, 180), (570, 180), DTHRU_OUTLINE)
-
 
     # The currently needed stock display.
     current_order_display()
@@ -1732,7 +1743,6 @@ def creation_menu(
         quantity_patty_needed, \
         log_expiry_time, \
         current_time
-
 
     # A 2D Dictionary is used for keeping track of each menus station statuses
     # so they don't get muddled up. If a dictionary has not been created under
@@ -2333,7 +2343,7 @@ def creation_menu(
 
 
 def current_order_display():
-    global orders_list, menu_list, total_stock_items, burger_type
+    global orders_list, menu_list, total_stock_items, burger_type, order_combo
 
     # The list of circle positions.
     circle_position: list[int] = [80, 180, 280, 380, 480, 80, 180, 280, 380, 480]
@@ -2353,10 +2363,9 @@ def current_order_display():
     name_y: int = 360
     # Y position of the quantity.
     quantity_y: int = 380
-    # Quantity required of the patties.
-    quantity_required: int = 0
     # A dict holding the patty totals for the current order. For each patty type, it initially sets it as 0.
     patty_totals: dict[str, int] = {type: 0 for type in burger_type}
+
     # A key is aquired of the current order, if there are orders.
     if orders_list:
         aquire_key = orders_list[0]
@@ -2437,6 +2446,14 @@ def current_order_display():
                         patty_quantity_text,
                         (patty_quantity_position[patty_type_index] - patty_width, 670),
                     )
+
+        # The current order number is targeted from the order_combo dict.
+        if aquire_key in order_combo:
+            # The current combo is then defined using the matching order number.
+            current_combo = combo_font.render(order_combo[aquire_key], True, YELLOW)
+            # Centering, then display.
+            combo_width = (current_combo.get_width() - 61) / 2
+            screen.blit(current_combo, (250 - combo_width, 200))
 
     # Patty images are displayed.
     screen.blit(hugo_patty_sized, (50, 590))
