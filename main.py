@@ -53,6 +53,7 @@ WHITE = (255, 255, 255)
 BLUE = (8, 98, 168)
 GREEN = (80, 200, 120)
 ORANGE = (255, 127, 0)
+GREY = (128, 128, 128)
 # Outline for most of the boxes displayed in game.
 OUTLINE_WIDTH: int = 5
 # Width and height of boxes on the second kiosk screen.
@@ -83,6 +84,8 @@ ORDER_ICON: tuple[int, int] = 35, 35
 CREATED_ICON: tuple[int, int] = 130, 130
 # The amount of time to wait before moving 1 space.
 WAIT_INTERVAL: int = 1
+
+
 # PREDEFINED VARIABLES
 
 # The desired screen dimensions.
@@ -125,7 +128,7 @@ total_stock_items: dict[str, int] = {
     "2 5/4 Slammer": 0,
     "Almighty Florida": 0,
     "Keanu Krunch": 0,
-    "Suspicious Chicken": 0,
+    "Devious Chicken": 0,
     "Chicken Little": 0,
     "10:1": 0,
     "4:1": 0,
@@ -149,8 +152,8 @@ pause: bool = False
 skip: bool = False
 wait: int = 0
 wait2: int = 0
-# A list to keep track of items expiring.
-expiring_items: dict[str, int] = {}
+# A dictionary of lists to keep track of expiring items.
+expiring_items: dict[str, list:int] = {}
 # The prices of the items at McHugo's.
 item_prices: dict[str, float] = {
     "Big Hugo": 4.6,
@@ -159,7 +162,7 @@ item_prices: dict[str, float] = {
     "2 5/4 Slammer": 7.2,
     "Almighty Florida": 5.4,
     "Keanu Krunch": 7.6,
-    "Suspicious Chicken": 4.9,
+    "Devious Chicken": 4.9,
     "Chicken Little": 7.1,
     "Fries": 2.8,
     "Hugo Juice": 2.0,
@@ -173,7 +176,7 @@ production_cost: dict[str, float] = {
     "2 5/4 Slammer": 1.8,
     "Almighty Florida": 1.35,
     "Keanu Krunch": 1.9,
-    "Suspicious Chicken": 1.3,
+    "Devious Chicken": 1.3,
     "Chicken Little": 1.78,
     "Fries": 0.5,
     "Hugo Juice": 0.3,
@@ -190,7 +193,7 @@ burger_type: dict[str, dict[str, int]] = {
     "10:1": {"Big Hugo": 1, "Francie Frenzy": 2},
     "4:1": {"5/4 Slammer": 1, "2 5/4 Slammer": 2},
     "Angus": {"Almighty Florida": 1, "Keanu Krunch": 2},
-    "Chicken": {"Suspicious Chicken": 1, "Chicken Little": 2},
+    "Chicken": {"Devious Chicken": 1, "Chicken Little": 2},
 }
 # Used for determing what patty is required when not enough have been made. Global variable.
 patty_needed: str = None
@@ -210,7 +213,7 @@ total_items_required: dict[str, int] = {
     "2 5/4 Slammer": 0,
     "Almighty Florida": 0,
     "Keanu Krunch": 0,
-    "Suspicious Chicken": 0,
+    "Devious Chicken": 0,
     "Chicken Little": 0,
     "Fries": 0,
     "McBullets": 0,
@@ -232,7 +235,7 @@ ordering_menu: list[str] = [
     "2 5/4 Slammer",
     "Almighty Florida",
     "Keanu Krunch",
-    "Suspicious Chicken",
+    "Devious Chicken",
     "Chicken Little",
     "Fries",
     "McBullets",
@@ -247,7 +250,7 @@ combos: dict[str, dict[str, int]] = {
     "The Excellence": {"2 5/4 Slammer": 1, "Fries": 1, "Hugo Juice": 1, "McBullets": 1},
     "Francie": {
         "Francie Frenzy": 1,
-        "Suspicious Chicken": 1,
+        "Devious Chicken": 1,
         "McBullets": 2,
         "Fries": 1,
     },
@@ -275,7 +278,7 @@ combos: dict[str, dict[str, int]] = {
     "Light Snack": {"McBullets": 1, "Fries": 1},
     "The Biggie": {"Francie Frenzy": 1, "McBullets": 2, "Hugo Juice": 1, "Fries": 3},
     "Anything Yellow": {
-        "Suspicious Chicken": 1,
+        "Devious Chicken": 1,
         "McBullets": 1,
         "Fries": 1,
         "Chicken Little": 1,
@@ -285,20 +288,20 @@ combos: dict[str, dict[str, int]] = {
     "Keanu Badiger": {"Keanu Krunch": 2},
     "I Love Hugo": {"Big Hugo": 4, "Hugo Juice": 4},
     "Big Snack": {"Fries": 3, "McBullets": 3},
-    "Chicken Lover": {"Suspicious Chicken": 1, "Chicken Little": 1, "McBullets": 1},
+    "Chicken Lover": {"Devious Chicken": 1, "Chicken Little": 1, "McBullets": 1},
     "Pleaseburgercheese": {"Big Hugo": 1},
     "Frugo": {"Big Hugo": 1, "Francie Frenzy": 1, "Fries": 2, "Hugo Juice": 2},
     "Big And Small": {"5/4 Slammer": 2, "Big Hugo": 2, "McBullets": 3, "Hugo Juice": 4},
     "Biden": {
         "Almighty Florida": 2,
-        "Suspicious Chicken": 1,
+        "Devious Chicken": 1,
         "Fries": 2,
         "Hugo Juice": 1,
     },
     "Basic Angus": {"Almighty Florida": 1, "Fries": 1, "Hugo Juice": 1},
     "Advanced Keanu": {"Keanu Krunch": 1, "Fries": 1, "Hugo Juice": 1},
     "Chicken Little": {"Chicken Little": 1, "McBullets": 1},
-    "Angry Chicken": {"Chicken Little": 2, "Suspicious Chicken": 1, "Keanu Krunch": 1},
+    "Angry Chicken": {"Chicken Little": 2, "Devious Chicken": 1, "Keanu Krunch": 1},
     "Seb's Synopsis": {
         "Francie Frenzy": 1,
         "Almighty Florida": 1,
@@ -323,7 +326,7 @@ combos: dict[str, dict[str, int]] = {
         "Big Hugo": 1,
         "5/4 Slammer": 1,
         "Almighty Florida": 1,
-        "Suspicious Chicken": 1,
+        "Devious Chicken": 1,
         "McBullets": 4,
         "Hugo Juice": 4,
     },
@@ -336,7 +339,7 @@ combos: dict[str, dict[str, int]] = {
         "2 5/4 Slammer": 1,
         "Almighty Florida": 1,
         "Keanu Krunch": 1,
-        "Suspicious Chicken": 1,
+        "Devious Chicken": 1,
         "Chicken Little": 1,
         "Fries": 3,
         "McBullets": 3,
@@ -348,7 +351,7 @@ combos: dict[str, dict[str, int]] = {
         "5/4 Slammer": 2,
         "2 5/4 Slammer": 2,
         "Keanu Krunch": 2,
-        "Suspicious Chicken": 2,
+        "Devious Chicken": 2,
         "Chicken Little": 2,
         "Fries": 6,
         "McBullets": 6,
@@ -396,6 +399,8 @@ deleted: bool = False
 deleting: bool = False
 # Position of the danger boxes.
 danger_box_positions: list[int] = [885, 735, 585, 435, 285, 135]
+# Contains what is in the current order. Global variable used for checking whats in the order. It is a list aquired with a key.
+order_stats = []
 # CURRENTLY UNUSED VARIABLES (DELETE IF NOT NEEDED)
 
 # Colours of the circles in the game selection menu. Also used for the circle
@@ -443,6 +448,7 @@ total_stock_name_font = pygame.font.Font("fonts/body text.ttf", 12)
 stock_required_font = pygame.font.Font("fonts/important button.ttf", 19)
 navigation_font = pygame.font.Font("fonts/important button.ttf", 18)
 number_font = pygame.font.Font("fonts/important button.ttf", 45)
+money_font = pygame.font.Font("fonts/important button.ttf", 34)
 status_heading_font = pygame.font.Font("fonts/important button.ttf", 16)
 status_font = pygame.font.Font("fonts/important button.ttf", 11)
 item_font = pygame.font.Font("fonts/body text.ttf", 11)
@@ -486,6 +492,11 @@ current_car_heading = navigation_font.render("Current car time:", True, WHITE)
 average_car_heading = navigation_font.render("Average: ", True, WHITE)
 money_heading = navigation_font.render("Money earnt: ", True, WHITE)
 time_heading = navigation_font.render("Time left: ", True, WHITE)
+hugo_patty_name = burger_name_font.render("10:1", True, WHITE)
+slammer_patty_name = burger_name_font.render("4:1", True, WHITE)
+angus_patty_name = burger_name_font.render("Angus", True, WHITE)
+chicken_patty_name = burger_name_font.render("Chicken", True, WHITE)
+
 # Drinks, Grill and BFM
 status_heading = status_heading_font.render("STATUS:", True, WHITE)
 status_standby = status_font.render("STANDBY", True, RED)
@@ -500,9 +511,6 @@ button_start = dthru_heading_font.render("CREATE!", True, WHITE)
 creation_click = status_font.render("CLICK!", True, WHITE)
 # TBR (Testing only, To Be Removed)
 counter_1 = quantity_font.render("3/5", True, WHITE)
-burger_name = burger_name_font.render("Chicken Little", True, WHITE)
-patty_name = burger_name_font.render("10:1", True, WHITE)
-patty_name2 = burger_name_font.render("Chicken", True, WHITE)
 current_car_time = number_font.render("0:00", True, WHITE)
 average_car_time = number_font.render("0:00", True, WHITE)
 grill_heading = burger_name_font.render("Grill", True, WHITE)
@@ -616,9 +624,21 @@ yellowlight_sized = pygame.transform.scale(yellowlight, (50, 135))
 greenlight_sized = pygame.transform.scale(greenlight, (50, 135))
 
 # Menu items
+# Current order display
+big_hugo_sized = pygame.transform.scale(big_hugo, (MENU_ICON))
+francie_frenzy_sized = pygame.transform.scale(francie_frenzy, (MENU_ICON))
 improper_slammer_sized = pygame.transform.scale(improper_slammer, (MENU_ICON))
+double_improper_slammer_sized = pygame.transform.scale(
+    double_improper_slammer, (MENU_ICON)
+)
+almighty_florida_sized = pygame.transform.scale(almighty_florida, (MENU_ICON))
+keanu_krunch_sized = pygame.transform.scale(keanu_krunch, (MENU_ICON))
+radioactive_mcr_sized = pygame.transform.scale(radioactive_mcr, (MENU_ICON))
+chicken_little_sized = pygame.transform.scale(chicken_little, (MENU_ICON))
 juice_sized = pygame.transform.scale(juice, (MENU_ICON))
+fries_sized = pygame.transform.scale(fries, (MENU_ICON))
 mcbullets_sized = pygame.transform.scale(mcbullets, (MENU_ICON))
+# Total stock display
 big_hugo_sized_t = pygame.transform.scale(big_hugo, (TOTAL_MENU_ICON))
 francie_frenzy_sized_t = pygame.transform.scale(francie_frenzy, (TOTAL_MENU_ICON))
 improper_slammer_sized_t = pygame.transform.scale(improper_slammer, (TOTAL_MENU_ICON))
@@ -754,6 +774,20 @@ bfm_timers: list[int] = [
     7000,
     8000,
 ]
+# Menu items linked to images
+current_order_images: dict[str] = {
+    "Big Hugo": big_hugo_sized,
+    "Francie Frenzy": francie_frenzy_sized,
+    "5/4 Slammer": improper_slammer_sized,
+    "2 5/4 Slammer": double_improper_slammer_sized,
+    "Almighty Florida": almighty_florida_sized,
+    "Keanu Krunch": keanu_krunch_sized,
+    "Devious Chicken": radioactive_mcr_sized,
+    "Chicken Little": chicken_little_sized,
+    "Fries": fries_sized,
+    "McBullets": mcbullets_sized,
+    "Hugo Juice": juice_sized,
+}
 # FUNCTIONS
 
 # UTILITY
@@ -820,16 +854,16 @@ def expiry() -> None:
     if expiring_items != {}:
         # The first value of the list is got, then 20 seconds is added to it
         # (the expiry time).
-        first_value = next(iter(expiring_items.values())) + 20000
-        # The first key is aquired.
-        first_key = next(iter(expiring_items.keys()))
-
-        # If the timer has expired:
-        if timer(first_value):
-            # Using the key, the item which has expired is reduced by 1.
-            total_stock_items[first_key] -= 1
-            # The item is deleted from the expiring items list.
-            del expiring_items[first_key]
+        for item_name, expiry in expiring_items.items():
+            # Makes sure the list isn't empty.
+            if expiry:
+                first_value = expiry[0] + 40000
+                # If the timer has expired:
+                if timer(first_value):
+                    # Using the item name, stock is updated.
+                    total_stock_items[item_name] -= 1
+                    # The item is deleted from the expiring items list.
+                    del expiry[0]
 
 
 def draw_timer(screen, elapsed_time: int, time_end: int, center, radius: int) -> None:
@@ -1023,7 +1057,8 @@ def display_cars(display: bool) -> None:
         excess, \
         deleted, \
         order_number, \
-        current_time
+        current_time, \
+        order_stats
 
     # If an order was placed:
     if ordered:
@@ -1122,7 +1157,8 @@ def display_cars(display: bool) -> None:
         excess = total_cars - 6
         if excess < 0:
             excess = 0
-
+        # The orders_list used by other functions needs to be updated too.
+        orders_list = list(individual_orders.keys())
         for car_number, car_stats in cars.items():
             # Targets of all cars are updated accordingly using an index.
             car_stats["target"] = car_coords[delete_index]
@@ -1485,83 +1521,29 @@ def ingame_menu(screen, screen_width, screen_height) -> bool:
                 deleted = True
                 deleting = False
 
+    # Drawing circles for unplaced orders.
+    order_circles: list[int] = [80, 180, 280, 380, 480]
+    for circle_x in order_circles:
+        pygame.draw.circle(screen, GREY, (circle_x, 320), 40, DTHRU_OUTLINE)
+        pygame.draw.circle(screen, GREY, (circle_x, 480), 40, DTHRU_OUTLINE)
+
     # ALL BELOW CODE IS TBR, ADD FOR LOOPS
 
     # The current order box.
     pygame.draw.rect(screen, WHITE, (0, 150, 570, 550), DTHRU_OUTLINE)
     screen.blit(current_order_heading, (160, 150))
-    # The box containing the current order in text.
+    pygame.draw.line(screen, WHITE, (0, 180), (570, 180), DTHRU_OUTLINE)
 
-    # x diff in circles = 100 for everything
-    # 1
-    # -130 from everything (first line 370)
-    pygame.draw.circle(screen, WHITE, (80, 240), 40, DTHRU_OUTLINE)
-    screen.blit(improper_slammer_sized, (50, 338))
-    screen.blit(burger_name, (40, 410))
-    screen.blit(counter_1, (65, 430))
-    # 2
-    pygame.draw.circle(screen, WHITE, (80, 500), 40, DTHRU_OUTLINE)
-    screen.blit(improper_slammer_sized, (50, 468))
-    screen.blit(burger_name, (40, 540))
-    screen.blit(counter_1, (65, 560))
 
     # The currently needed stock display.
-    pygame.draw.circle(screen, WHITE, (80, 370), 40, DTHRU_OUTLINE)
-    screen.blit(improper_slammer_sized, (50, 338))
-    screen.blit(burger_name, (40, 410))
-    screen.blit(counter_1, (65, 430))
-    pygame.draw.circle(screen, WHITE, (180, 370), 40, DTHRU_OUTLINE)
-    screen.blit(mcbullets_sized, (150, 338))
-    screen.blit(burger_name, (140, 410))
-    screen.blit(counter_1, (165, 430))
-    pygame.draw.circle(screen, WHITE, (280, 370), 40, DTHRU_OUTLINE)
-    screen.blit(improper_slammer_sized, (250, 338))
-    screen.blit(burger_name, (240, 410))
-    screen.blit(counter_1, (265, 430))
-    pygame.draw.circle(screen, WHITE, (380, 370), 40, DTHRU_OUTLINE)
-    screen.blit(improper_slammer_sized, (350, 338))
-    screen.blit(burger_name, (340, 410))
-    screen.blit(counter_1, (365, 430))
-    pygame.draw.circle(screen, WHITE, (480, 370), 40, DTHRU_OUTLINE)
-    screen.blit(improper_slammer_sized, (450, 338))
-    screen.blit(burger_name, (440, 410))
-    screen.blit(counter_1, (465, 430))
-    # Section 2.
-    pygame.draw.circle(screen, WHITE, (80, 500), 40, DTHRU_OUTLINE)
-    screen.blit(improper_slammer_sized, (50, 468))
-    screen.blit(burger_name, (40, 540))
-    screen.blit(counter_1, (65, 560))
-    pygame.draw.circle(screen, WHITE, (180, 500), 40, DTHRU_OUTLINE)
-    screen.blit(mcbullets_sized, (150, 468))
-    screen.blit(burger_name, (140, 540))
-    screen.blit(counter_1, (165, 560))
-    pygame.draw.circle(screen, WHITE, (280, 500), 40, DTHRU_OUTLINE)
-    screen.blit(improper_slammer_sized, (250, 468))
-    screen.blit(burger_name, (240, 540))
-    screen.blit(counter_1, (265, 560))
-    pygame.draw.circle(screen, WHITE, (380, 500), 40, DTHRU_OUTLINE)
-    screen.blit(improper_slammer_sized, (350, 468))
-    screen.blit(burger_name, (340, 540))
-    screen.blit(counter_1, (365, 560))
-    pygame.draw.circle(screen, WHITE, (480, 500), 40, DTHRU_OUTLINE)
-    screen.blit(improper_slammer_sized, (450, 468))
-    screen.blit(burger_name, (440, 540))
-    screen.blit(counter_1, (465, 560))
+    current_order_display()
+    # pygame.draw.circle(screen, WHITE, (80, 320), 40, DTHRU_OUTLINE)
+    # screen.blit(improper_slammer_sized, (50, 288))
+    # screen.blit(burger_name, (40, 360))
+    # screen.blit(counter_1, (65, 380))
 
     # The section is for patties.
     pygame.draw.line(screen, WHITE, (0, 590), (567, 590), DTHRU_OUTLINE)
-    screen.blit(hugo_patty_sized, (50, 590))
-    screen.blit(patty_name, (71, 649))
-    screen.blit(counter_1, (68, 670))
-    screen.blit(slammer_patty_sized, (180, 590))
-    screen.blit(patty_name, (201, 649))
-    screen.blit(counter_1, (198, 670))
-    screen.blit(angus_patty_sized, (310, 590))
-    screen.blit(patty_name2, (316, 649))
-    screen.blit(counter_1, (328, 670))
-    screen.blit(chicken_patty_sized, (440, 590))
-    screen.blit(patty_name2, (436, 649))
-    screen.blit(counter_1, (448, 670))
 
     # This is the total stock section.
     pygame.draw.rect(screen, WHITE, (570, 150, 450, 550), DTHRU_OUTLINE)
@@ -1590,7 +1572,7 @@ def ingame_menu(screen, screen_width, screen_height) -> bool:
 
     # This is the navigation section.
     # These need to be updated constantly as the variables change.
-    money_earnt = number_font.render("$" + str(money), True, WHITE)
+    money_earnt = money_font.render("$" + str(money), True, WHITE)
     time_left_font = number_font.render(str(time_left), True, WHITE)
     pygame.draw.rect(screen, WHITE, (1020, 150, 180, 550), DTHRU_OUTLINE)
     pygame.draw.line(screen, WHITE, (1020, 180), (1200, 180), DTHRU_OUTLINE)
@@ -1600,7 +1582,7 @@ def ingame_menu(screen, screen_width, screen_height) -> bool:
     screen.blit(average_car_heading, (1070, 270))
     screen.blit(average_car_time, (1055, 290))
     screen.blit(money_heading, (1050, 350))
-    screen.blit(money_earnt, (1040, 370))
+    screen.blit(money_earnt, (1035, 370))
     screen.blit(time_heading, (1065, 430))
     screen.blit(time_left_font, (1055, 450))
 
@@ -2165,7 +2147,7 @@ def creation_menu(
                                     ] = False
                                     # The erorr message disappears.
                                     visible = False
-                                    # The patty is taken off the users stock.
+                                    # The patty is taken off the users stock, and the expiry tracker.
                                     total_stock_items[patty_type] -= patty_requirements
                                     # Display of stock is updated.
                                     menu_list = list(total_stock_items.items())
@@ -2254,7 +2236,12 @@ def creation_menu(
                 menu_list = list(total_stock_items.items())
                 # The time when the item was added to track expiry.
                 time_added = pygame.time.get_ticks()
-                expiring_items[item_station] = time_added
+                # If the item already exists in the expiry dict, a new value is added to that item.
+                if item_station in expiring_items:
+                    expiring_items[item_station].append(time_added)
+                    # Otherwise the item is added.
+                else:
+                    expiring_items[item_station] = [time_added]
 
         # The text is drawn, being a certain amount of pixels away from the rect
         # itself for a consistent baseline.
@@ -2346,9 +2333,120 @@ def creation_menu(
 
 
 def current_order_display():
-    global individual_orders
+    global orders_list, menu_list, total_stock_items, burger_type
 
+    # The list of circle positions.
+    circle_position: list[int] = [80, 180, 280, 380, 480, 80, 180, 280, 380, 480]
+    # The list of image positions.
+    image_position: list[int] = [50, 150, 250, 350, 450, 50, 150, 250, 350, 450]
+    # The list of text positions.
+    text_position: list[int] = [65, 165, 265, 365, 465, 65, 165, 265, 365, 465]
+    # The list of patty quantity positions.
+    patty_quantity_position: list[int] = [80, 215, 332, 450]
+    # An index variable to scroll through each position in the list. It starts at -1 because it is triggered as soon as the for loop begins.
+    circle_x_count: int = -1
+    # The y position of the circle.
+    circle_y: int = 320
+    # Y position of the image.
+    image_y: int = 288
+    # Y position of the item name.
+    name_y: int = 360
+    # Y position of the quantity.
+    quantity_y: int = 380
+    # Quantity required of the patties.
+    quantity_required: int = 0
+    # A dict holding the patty totals for the current order. For each patty type, it initially sets it as 0.
+    patty_totals: dict[str, int] = {type: 0 for type in burger_type}
+    # A key is aquired of the current order, if there are orders.
+    if orders_list:
+        aquire_key = orders_list[0]
+        if aquire_key in individual_orders:
+            current_order_stats = individual_orders[aquire_key]
+            # For item in the order, a circle is drawn with the coordinates specified above.
+            for item, quantity in current_order_stats.items():
+                # Count is increased.
+                circle_x_count += 1
+                # If the row is full, y changes.
+                if circle_x_count > 4:
+                    circle_y = 480
+                    image_y = 448
+                    name_y = 520
+                    quantity_y = 540
 
+                # If the requirement for a item has been fufilled, the colour is changed.
+                if total_stock_items[item] >= quantity:
+                    colour = GREEN
+                else:
+                    colour = WHITE
+
+                # Each circle for each item is drawn.
+                pygame.draw.circle(
+                    screen,
+                    colour,
+                    (circle_position[circle_x_count], circle_y),
+                    40,
+                    DTHRU_OUTLINE,
+                )
+                # Item name is displayed.
+                item_name_text = burger_name_font.render(item, True, colour)
+                # Text is centered using the shortest name, then displayed.
+                item_name_width = (item_name_text.get_width() - 30) / 2
+                screen.blit(
+                    item_name_text,
+                    (text_position[circle_x_count] - item_name_width, name_y),
+                )
+                # Item quantity is taken by taking current stock and comparing it the quantity.
+                quantity_text = quantity_font.render(
+                    str(total_stock_items[item]) + "/" + str(quantity), True, colour
+                )
+                quantity_width = (quantity_text.get_width() - 21) / 2
+                screen.blit(
+                    quantity_text,
+                    (5 + text_position[circle_x_count] - quantity_width, quantity_y),
+                )
+
+                # The current order is compared to the dict with the images for each item.
+                for item_name, item_image in current_order_images.items():
+                    # If there is a match on both dicts:
+                    if item == item_name:
+                        # The match is displayed.
+                        screen.blit(
+                            item_image, (image_position[circle_x_count], image_y)
+                        )
+
+                # The ordered item is compared to the item in the burger_type dict.
+                for patty_type, burger_stats in burger_type.items():
+                    if item in burger_stats:
+                        # The patty total is updated using the quantity of the item ordered and the amount of patties in the burger.
+                        patty_totals[patty_type] += quantity * burger_stats[item]
+
+            # Once patty totals have been updated, they are displayed in this for loop.
+            for patty_type, total_quantity in patty_totals.items():
+                # Display only occurs if that patty has been ordered.
+                if total_quantity > 0:
+                    # A variable is made by checking the patty type position in the dict, converted to a list.
+                    patty_type_index = list(burger_type.keys()).index(patty_type)
+                    # Text for the patty is then defined.
+                    patty_quantity_text = quantity_font.render(
+                        str(total_quantity), True, WHITE
+                    )
+                    # Text is centered, then displayed.
+                    patty_width = (patty_quantity_text.get_width() - 6) / 2
+                    # The index variable is used to display the quantity under the correct patty.
+                    screen.blit(
+                        patty_quantity_text,
+                        (patty_quantity_position[patty_type_index] - patty_width, 670),
+                    )
+
+    # Patty images are displayed.
+    screen.blit(hugo_patty_sized, (50, 590))
+    screen.blit(slammer_patty_sized, (180, 590))
+    screen.blit(angus_patty_sized, (310, 590))
+    screen.blit(chicken_patty_sized, (440, 590))
+    screen.blit(hugo_patty_name, (70, 650))
+    screen.blit(slammer_patty_name, (205, 650))
+    screen.blit(angus_patty_name, (322, 650))
+    screen.blit(chicken_patty_name, (440, 650))
 # UNUSED FUNCTIONS ARE BELOW
 
 
@@ -2797,9 +2895,9 @@ while running:
         screen.fill(BLACK)
         current_state = creation_menu(
             [
-                "Suspicious Chicken",
-                "Suspicious Chicken",
-                "Suspicious Chicken",
+                "Devious Chicken",
+                "Devious Chicken",
+                "Devious Chicken",
                 "Chicken Little",
                 "Chicken Little",
                 "Chicken Little",
@@ -2818,7 +2916,7 @@ while running:
                 chickenlittle_creation_icon,
                 chickenlittle_creation_icon,
             ],
-            ["Suspicious\nChicken", "Chicken\nLittle"],
+            ["Devious\nChicken", "Chicken\nLittle"],
             [3000, 3000, 3000, 4000, 4000, 4000],
         )
 
