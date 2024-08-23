@@ -977,7 +977,9 @@ def ai_ordering() -> None:
                     if burger_name == burger:
                         # Using the patty type of the burger, it is updated with
                         # the requirements.
-                        total_items_required[patty_type] += patty_requirements
+                        total_items_required[patty_type] += (
+                            patty_requirements * quantity
+                        )
 
         # The amount of items for the AI to order are chosen.
         items_ordered = random.randint(1, 4)
@@ -1251,6 +1253,32 @@ def danger_meter(order_total):
         danger = extreme_danger
     return danger
 
+def total_patty_amount(patty_name: str) -> int:
+    """Calculate how many patties are currently in burgers.
+
+    Args:
+        patty_name (str): The name of the patty being targeted.
+
+    Returns:
+        int: Returns how much of that patty is in made burgers, so
+        needed patties can be correctly calculated.
+    """
+    # Total is inititally set to 0.
+    patty_total: int = 0
+    # The draws from 2 dicts, with one being 2d so an extra for loop is needed.
+    for burger_name, burger_value in total_stock_items.items():
+        for patty_type, burger_stats in burger_type.items():
+            for burger_name_patties, patty_quantity in burger_stats.items():
+                # Once the patty to be targeted has been found and a burger with
+                # that matching patty has been found:
+                if patty_name == patty_type and burger_name == burger_name_patties:
+                    # Because their are 2 burgers for each patty, total is
+                    # added to by multiplying the amount of patties in that
+                    # burger by the stock.
+                    patty_total += patty_quantity * burger_value
+    # Once the patty totals have been calculated, the total in burgers is
+    # returned.
+    return patty_total
 
 # CORE GAME
 
@@ -1476,7 +1504,9 @@ def ingame_menu(screen, screen_width, screen_height) -> bool:
         excess, \
         cars, \
         deleted, \
-        deleting
+        deleting, \
+        total_items_required, \
+        burger_type
 
     # The below code fixes a flickering bug with content onscreen.
     # If the desired screen dimensions aren't the current dimensions:
@@ -1529,9 +1559,18 @@ def ingame_menu(screen, screen_width, screen_height) -> bool:
                 # Its info is deleted, and control is handed to the display cars
                 # function to update the rest of the cars.
                 del cars[served_car]
+                for item_name, quantity in individual_orders[served_order].items():
+                    for total_item_name, total_quantity in total_items_required.items():
+                        if item_name == total_item_name:
+                            total_items_required[item_name] -= quantity
+                            for patty_type, burger_stats in burger_type.items():
+                                if item_name in burger_stats:
+                                    total_items_required[patty_type] -= (
+                                        burger_stats[item_name] * quantity
+                                    )
+                deleting = False
                 del individual_orders[served_order]
                 deleted = True
-                deleting = False
 
     # Drawing circles for unplaced orders.
     order_circles: list[int] = [80, 180, 280, 380, 480]
@@ -1658,7 +1697,7 @@ def display_menu_items(
     """
     # The menu in text and image form need to be accessed so the function knows
     # what to display using indexing.
-    global menu_images
+    global menu_images, total_items_required, total_stock_items, burger_type
 
     # A nested for loop is used to display everything in a grid format.
     for y in y_positions:
@@ -1673,13 +1712,26 @@ def display_menu_items(
                     # The item name and quantity is taken from the dict with the
                     # provided index.
                     item_name, item_quantity = menu_list[initial_index]
+                    # For each item in game:
+                    for burger_name, burger_value in total_items_required.items():
+                        # The item is matched between the 2 dicts.
+                        if burger_name == item_name:
+                            # Quantity is determined by taking the stock minus the required amount.
+                            total_item_quantity = item_quantity - burger_value
+
+                    # If the item is a patty, it needs special treatment because some patties can already be in burgers and therefore don't need to be made.
+                    for patty_type, burger_stats in burger_type.items():
+                        if item_name == patty_type:
+                            # A function is used to determine this, then the patties already in burgers are added to the quantity needed.
+                            total_item_quantity += total_patty_amount(item_name)
+
                     # A variable assigned to the indexed name and quantity is
                     # made with the appropiate font.
                     item_name_text = total_stock_name_font.render(
                         item_name, True, WHITE
                     )
                     item_quantity_text = stock_required_font.render(
-                        str(item_quantity), True, WHITE
+                        str(total_item_quantity), True, WHITE
                     )
                     # Its width is then calculated so it can be centered
                     # correctly. 49 is the length of the shortest item,
@@ -1742,8 +1794,11 @@ def creation_menu(
         patty_needed, \
         quantity_patty_needed, \
         log_expiry_time, \
-        current_time
+        current_time, \
+        orders_list
 
+    # Totals for each patty.
+    patty_totals: dict[str, int] = {type: 0 for type in burger_type}
     # A 2D Dictionary is used for keeping track of each menus station statuses
     # so they don't get muddled up. If a dictionary has not been created under
     # the menu name, one is made.
@@ -1797,18 +1852,162 @@ def creation_menu(
     image_index: int = 0
     text_index: int = 0
     creation_index: int = 0
+    quantity_index: int = 0
 
     # This for loop is for the images when displaying the order stats.
     for image in order_icons:
         # Replace needed_juice with proper variable
         # For each image, it is moved by 50 to the right. The icon is displayed
         # by cycling through the provided list.
-        screen.blit(needed_juice, (530 + image_index * 110, 15))
         screen.blit(order_icons[image_index], (585 + image_index * 110, 8))
         # For total requirements (replace needed juice)
-        screen.blit(needed_juice, (480 + image_index * 110, 85))
         screen.blit(order_icons[image_index], (535 + image_index * 110, 80))
         image_index += 1
+
+    # Because the names provided have \n in their name, this piece of code replaces \n with a space so they can be compared properly.
+    proper_items = [name.replace("\n", " ") for name in item_names]
+
+    # If there are orders:
+    if orders_list:
+        # The current order is aquired for the current order display.
+        aquire_key = orders_list[0]
+        if aquire_key in individual_orders:
+            current_order_stats = individual_orders[aquire_key]
+
+            # For each item and its quantity in the current order:
+            for current_item, current_quantity in current_order_stats.items():
+                # If the user is in the grill menu:
+                if menu_name == "Grill":
+                    for patty_type, burger_stats in burger_type.items():
+                        # Each patty other than chicken is calculated and stored in a dict.
+                        if patty_type != "Chicken":
+                            # The item is matched with one of the burgers:
+                            if current_item in burger_stats:
+                                # Then its patty is taken and stored in the dict holding patties.
+                                # Patties are checked for in burgers so the user doesn't think they have to make them again.
+                                patty_totals[patty_type] += (
+                                    current_quantity * burger_stats[current_item]
+                                    - total_patty_amount(patty_type)
+                                )
+
+                # If the menu is not grill:
+                else:
+                    # For each item in the current station:
+                    for actual_item in proper_items:
+                        if actual_item == current_item:
+                            # The index is aquired so it can be displayed at the correct place.
+                            quantity_index = proper_items.index(actual_item)
+
+                            # Quantity is defined.
+                            quantity = current_quantity - total_stock_items[actual_item]
+                            # If quantity required has gone under 0:
+                            if quantity < 0:
+                                # Rather than showing negative, it shows 0.
+                                quantity = 0
+
+                            # Text is defined then displayed at the index point.
+                            current_item_text = main_menu_options_xs.render(
+                                ("x" + str(quantity)),
+                                True,
+                                WHITE,
+                            )
+                            screen.blit(
+                                current_item_text, (530 + quantity_index * 110, 15)
+                            )
+
+                    # The chicken patty burgers are specially accessed because the chicken patty is shown in a regular menu instead of the patty menu.
+                    for chicken_burger, value in burger_type["Chicken"].items():
+                        # If the item is one of the chicken burgers, chicken is updated accordingly.
+                        if current_item == chicken_burger:
+                            patty_totals["Chicken"] += (
+                                current_quantity * value - total_patty_amount("Chicken")
+                            )
+
+            # Once all chicken patties have been accumulated, then they are displayed.
+            if patty_totals["Chicken"] > 0:
+                # Ensures chicken patties are not displayed for other menus other than BFM.
+                if menu_name == "BFM":
+                    quantity = patty_totals["Chicken"] - total_stock_items["Chicken"]
+                    if quantity < 0:
+                        quantity = 0
+
+                    current_item_text = main_menu_options_xs.render(
+                        ("x" + str(quantity)),
+                        True,
+                        WHITE,
+                    )
+                    screen.blit(current_item_text, (530 + 2 * 110, 15))
+
+            # For each patty in the total dict:
+            for patty_type, total_quantity in patty_totals.items():
+                # As long as there is something to display:
+                if total_quantity > 0:
+                    if patty_type != "Chicken":
+                        # The patty position in the dict is got so it can be displayed at the appropiate place.
+                        patty_type_index = list(burger_type.keys()).index(patty_type)
+
+                        quantity = total_quantity - total_stock_items[patty_type]
+                        if quantity < 0:
+                            quantity = 0
+
+                        # The needed patties are calculated and put into a font, then displayed.
+                        current_item_text = main_menu_options_xs2.render(
+                            ("x" + str(quantity)),
+                            True,
+                            WHITE,
+                        )
+                        screen.blit(
+                            current_item_text, (530 + patty_type_index * 110, 15)
+                        )
+
+        # This section is for the total section.
+
+        # A list of each item is aquired so the index can be properly determined,
+        # and so the item can be properly located without the value interfering.
+        menu_list_names = [item[0] for item in menu_list]
+        # Quantity has to be initially defined.
+        display_stock_quantity: int = 0
+
+        # For each item in the current station:
+        for actual_item in proper_items:
+            # For each item and its quantity in the required items:
+            for total_item_name, total_item_quantity in total_items_required.items():
+                # The item is targeted using the list of items.
+                if actual_item in menu_list_names:
+                    # Where to display the quantity is got using the current
+                    # items position in the station display parameters.
+                    quantity_display_index = proper_items.index(actual_item)
+                    # The position of the item in the menu is got.
+                    quantity_stock_index = menu_list_names.index(actual_item)
+                    # The value and item name is then found using this index.
+                    total_stock_name, total_stock_quantity = menu_list[
+                        quantity_stock_index
+                    ]
+
+                    # The item in the required list is matched with the item in
+                    # the menu.
+                    if total_item_name == total_stock_name:
+                        # Quantity is then defined.
+                        display_stock_quantity = (
+                            total_item_quantity - total_stock_quantity
+                        )
+
+            # This code checks for patties currently in burgers, and alters the
+            # quantity correspondingly.
+            for patty_type, burger_stats in burger_type.items():
+                if actual_item in menu_list_names:
+                    if actual_item == patty_type:
+                        display_stock_quantity -= total_patty_amount(actual_item)
+
+            # If current stock is below 0, it is displayed as 0.
+            if display_stock_quantity < 0:
+                display_stock_quantity = 0
+
+            # Text is defined and printed.
+            total_item_text = main_menu_options_xs.render(
+                ("x" + str(display_stock_quantity)), True, WHITE
+            )
+            screen.blit(total_item_text, (480 + quantity_display_index * 110, 85))
 
     # A similar loop to the previous, except if the item name requires two lines
     # extra code is added to manually split it.
@@ -2343,6 +2542,8 @@ def creation_menu(
 
 
 def current_order_display():
+    """Display the items required for the current order."""
+
     global orders_list, menu_list, total_stock_items, burger_type, order_combo
 
     # The list of circle positions.
@@ -2352,7 +2553,7 @@ def current_order_display():
     # The list of text positions.
     text_position: list[int] = [65, 165, 265, 365, 465, 65, 165, 265, 365, 465]
     # The list of patty quantity positions.
-    patty_quantity_position: list[int] = [80, 215, 332, 450]
+    patty_quantity_position: list[int] = [80, 210, 340, 460]
     # An index variable to scroll through each position in the list. It starts at -1 because it is triggered as soon as the for loop begins.
     circle_x_count: int = -1
     # The y position of the circle.
@@ -2371,7 +2572,7 @@ def current_order_display():
         aquire_key = orders_list[0]
         if aquire_key in individual_orders:
             current_order_stats = individual_orders[aquire_key]
-            # For item in the order, a circle is drawn with the coordinates specified above.
+            # For each item in the order, a circle is drawn with the coordinates specified above.
             for item, quantity in current_order_stats.items():
                 # Count is increased.
                 circle_x_count += 1
