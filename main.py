@@ -197,13 +197,14 @@ burger_type: dict[str, dict[str, int]] = {
     "Angus": {"Almighty Florida": 1, "Keanu Krunch": 2},
     "Chicken": {"Devious Chicken": 1, "Chicken Little": 2},
 }
-# Used for determing what patty is required when not enough have been made. Global variable.
+# Used for determing what patty is required when not enough have been made.
+# Global variable.
 patty_needed: str = None
 quantity_patty_needed: int = None
-log_expiry_time: bool = False
 # Indicates whether the AI should begin ordering,
 begin_ordering: bool = False
-# Indicates if the AI has obtained a number for waiting to prevent constant looping.
+# Indicates if the AI has obtained a number for waiting to prevent constant
+# looping.
 obtained_wait: bool = False
 # The time to wait before placing an order.
 wait_order: int = 0
@@ -249,7 +250,12 @@ combos: dict[str, dict[str, int]] = {
     "The HugoBox": {"Big Hugo": 2, "Fries": 2, "Hugo Juice": 2},
     "The Achieved": {"5/4 Slammer": 1, "Fries": 1},
     "The Merit": {"2 5/4 Slammer": 1, "Fries": 1},
-    "The Excellence": {"2 5/4 Slammer": 1, "Fries": 1, "Hugo Juice": 1, "McBullets": 1},
+    "The Excellence": {
+        "2 5/4 Slammer": 1,
+        "Fries": 1,
+        "Hugo Juice": 1,
+        "McBullets": 1,
+    },
     "Francie": {
         "Francie Frenzy": 1,
         "Devious Chicken": 1,
@@ -278,22 +284,40 @@ combos: dict[str, dict[str, int]] = {
         "Fries": 6,
     },
     "Light Snack": {"McBullets": 1, "Fries": 1},
-    "The Biggie": {"Francie Frenzy": 1, "McBullets": 2, "Hugo Juice": 1, "Fries": 3},
+    "The Biggie": {
+        "Francie Frenzy": 1,
+        "McBullets": 2,
+        "Hugo Juice": 1,
+        "Fries": 3,
+    },
     "Anything Yellow": {
         "Devious Chicken": 1,
         "McBullets": 1,
         "Fries": 1,
         "Chicken Little": 1,
     },
-    "Yellow Is My Favourite Colour": {"Chicken Little": 2, "McBullets": 2, "Fries": 2},
+    "Yellow Is My Favourite Colour": {
+        "Chicken Little": 2,
+        "McBullets": 2,
+        "Fries": 2,
+    },
     "America": {"Almighty Florida": 2, "McBullets": 1},
     "Keanu Badiger": {"Keanu Krunch": 2},
     "I Love Hugo": {"Big Hugo": 4, "Hugo Juice": 4},
     "Big Snack": {"Fries": 3, "McBullets": 3},
-    "Chicken Lover": {"Devious Chicken": 1, "Chicken Little": 1, "McBullets": 1},
+    "Chicken Lover": {
+        "Devious Chicken": 1,
+        "Chicken Little": 1,
+        "McBullets": 1,
+    },
     "Pleaseburgercheese": {"Big Hugo": 1},
     "Frugo": {"Big Hugo": 1, "Francie Frenzy": 1, "Fries": 2, "Hugo Juice": 2},
-    "Big And Small": {"5/4 Slammer": 2, "Big Hugo": 2, "McBullets": 3, "Hugo Juice": 4},
+    "Big And Small": {
+        "5/4 Slammer": 2,
+        "Big Hugo": 2,
+        "McBullets": 3,
+        "Hugo Juice": 4,
+    },
     "Biden": {
         "Almighty Florida": 2,
         "Devious Chicken": 1,
@@ -303,7 +327,11 @@ combos: dict[str, dict[str, int]] = {
     "Basic Angus": {"Almighty Florida": 1, "Fries": 1, "Hugo Juice": 1},
     "Advanced Keanu": {"Keanu Krunch": 1, "Fries": 1, "Hugo Juice": 1},
     "Chicken Little": {"Chicken Little": 1, "McBullets": 1},
-    "Angry Chicken": {"Chicken Little": 2, "Devious Chicken": 1, "Keanu Krunch": 1},
+    "Angry Chicken": {
+        "Chicken Little": 2,
+        "Devious Chicken": 1,
+        "Keanu Krunch": 1,
+    },
     "Seb's Synopsis": {
         "Francie Frenzy": 1,
         "Almighty Florida": 1,
@@ -390,7 +418,8 @@ deleted: bool = False
 deleting: bool = False
 # Position of the danger boxes.
 danger_box_positions: list[int] = [885, 735, 585, 435, 285, 135]
-# Contains what is in the current order. Global variable used for checking whats in the order. It is a list aquired with a key.
+# Contains what is in the current order. Global variable used for checking whats
+# in the order. It is a list aquired with a key.
 order_stats = []
 # Global dict to assign orders to combos so they can be displayed.
 order_combo: dict[str, str] = {}
@@ -405,6 +434,10 @@ tutorial_select: int = 0
 # The total items ordered.
 total_items_ordered: int = 0
 
+# SOUNDS
+order_sfx = pygame.mixer.Sound("sounds/order.mp3")
+cooking_sfx = pygame.mixer.Sound("sounds/startgrillbmf.mp3")
+burnt_sfx = pygame.mixer.Sound("sounds/burnt.mp3")
 # FONTS AND IMAGES
 
 
@@ -527,7 +560,7 @@ tutorial_2 = pygame.image.load("images/tutorial/tutorial2-removebg-preview.png")
 tutorial_3 = pygame.image.load("images/tutorial/tutorial3-removebg-preview.png")
 tutorial_5 = pygame.image.load("images/tutorial/tutorial5-removebg-preview (1).png")
 tutorial_6 = pygame.image.load("images/tutorial/tutorial6-removebg-preview.png")
-tutorial_7 = pygame.image.load("images/tutorial/tutorial7-removebg-preview.png")
+tutorial_7 = pygame.image.load("images/tutorial/Capture-removebg-preview.png")
 tutorial_8 = pygame.image.load("images/tutorial/tutorial8-removebg-preview (2).png")
 
 # Menu items (all from Freepik)
@@ -906,15 +939,17 @@ def ai_ordering() -> None:
     else:
         ordered = False
 
-        # The AI waits between 1 and 30 seconds. * 1000 converts to ms.
+        # The AI waits between 3 and 40 seconds. * 1000 converts to ms.
         if not obtained_wait:
-            wait_order = random.randint(1, 30) * 1000 + current_time
+            wait_order = random.randint(6, 43) * 1000 + current_time
             # Only gets the obtained number once.
             obtained_wait = True
 
         # If it is time for the AI to order:
         if timer(wait_order):
             print("ORDERED")
+            # Order sound is played.
+            order_sfx.play()
             # The order number.
             order_index += 1
             # The order number is created.
@@ -936,8 +971,8 @@ def ai_ordering() -> None:
                 for patty_type, burger_stats in burger_type.items():
                     for burger_name, patty_requirements in burger_stats.items():
                         if burger_name == burger:
-                            # Using the patty type of the burger, it is updated with
-                            # the requirements.
+                            # Using the patty type of the burger, it is updated
+                            # with the requirements.
                             total_items_required[patty_type] += (
                                 patty_requirements * quantity
                             )
@@ -954,8 +989,9 @@ def ai_ordering() -> None:
 
                 while items_selected > 0:
                     # The amount of items to buy is randomly determined.
-                    item_purchased = random.randint(0, 10)
-                    # The item is determined using the index of the purchased item.
+                    item_purchased = random.randint(0, 5)
+                    # The item is determined using the index of the purchased
+                    # item.
                     item_name = ordering_menu[item_purchased]
 
                     # If the item has not yet been ordered, it is added.
@@ -974,8 +1010,8 @@ def ai_ordering() -> None:
                     for patty_type, burger_stats in burger_type.items():
                         for burger_name, patty_requirements in burger_stats.items():
                             if burger_name == item_name:
-                                # Using the patty type of the burger, it is updated
-                                # with the requirements.
+                                # Using the patty type of the burger, it is
+                                # update with the requirements.
                                 total_items_required[patty_type] += patty_requirements
 
                 # The combo name is assigned to a dict logging each orders combo
@@ -1003,8 +1039,8 @@ def game_time(initial_start: int) -> int:
     """
     global current_time
 
-    # The time the game begun, plus 6 minutes (the duration of the game.) 360000
-    begin_time = initial_start + 90000
+    # The time the game begun, plus 6 minutes (the duration of the game.)
+    begin_time = initial_start + 360000
     # Seconds are calculated and converted.
     seconds = (begin_time - current_time) // 1000
     # How many minutes are left.
@@ -1090,7 +1126,8 @@ def display_cars(display: bool):
         # This controls the car movement and the last time it moved.
         cars[order_number]["last tick"] = pygame.time.get_ticks()
 
-        # Excess cars are calculated. If the total is lower than 0, it is set to 0.
+        # Excess cars are calculated. If the total is lower than 0, it is set
+        # to 0.
         excess = total_cars - 6
         if excess < 0:
             excess = 0
@@ -1194,7 +1231,7 @@ def car_colour(time: int):
         colour = GREEN
     if time >= 40:
         colour = ORANGE
-    if time >= 60:
+    if time >= 70:
         colour = RED
     return colour
 
@@ -1227,7 +1264,8 @@ def total_patty_amount(patty_name: str, current_order: bool) -> int:
 
     Args:
         patty_name (str): The name of the patty being targeted.
-        current_order (bool): If the total patty amount is being calculated for the current order.
+        current_order (bool): If the total patty amount is being calculated for
+        the current order.
 
     Returns:
         int: Returns how much of that patty is in made burgers, so
@@ -1236,36 +1274,43 @@ def total_patty_amount(patty_name: str, current_order: bool) -> int:
     global individual_orders, orders_list
     # Total is inititally set to 0.
     patty_total: int = 0
-    # Initially, the 3 main dicts are accessed so the program can determine what is needed and what isn't. The total stock of items, and burger stats for each burger are accessed.
+    # Initially, the 3 main dicts are accessed so the program can determine what
+    # is needed and what isn't. The total stock of items, and burger stats for
+    # each burger are accessed.
     for burger_name, burger_value in total_stock_items.items():
         for patty_type, burger_stats in burger_type.items():
             for burger_name_patties, patty_quantity in burger_stats.items():
-                # If the total patties need to be displayed for the current order:
+                # If the total patties need to be displayed for the current
+                # order:
                 if current_order:
                     # The current order is accessed.
                     aquire_key = orders_list[0]
                     current_order_stats = individual_orders[aquire_key]
-                    # Only burgers in the current order are targeted, and are matched with their patty type and name in the burger_type dict.
+                    # Only burgers in the current order are targeted, and are
+                    # matched with their patty type and name in the burger_type
+                    # dict.
                     for current_item, current_quantity in current_order_stats.items():
                         if (
                             current_item == burger_name
                             and patty_name == patty_type
                             and burger_name == burger_name_patties
                         ):
-                            # Because their are 2 burgers for each patty, total is
-                            # added to by multiplying the amount of patties in that
-                            # burger by the stock.
+                            # Because their are 2 burgers for each patty,
+                            # total is added to by multiplying the amount of
+                            # patties in that burger by the stock.
                             patty_total += patty_quantity * burger_value
                 else:
-                    # The same is done, except with the total items required dict.
+                    # The same is done, except with the total items required
+                    # dict.
                     for total_item, total_quantity in total_items_required.items():
-                        # Once the patty to be targeted has been found and a burger with
-                        # that matching patty has been found:
+                        # Once the patty to be targeted has been found and a
+                        # burger with that matching patty has been found:
                         if (
                             patty_name == patty_type
                             and burger_name == burger_name_patties
                             and total_item == burger_name
-                            # The quantity must be greater than 0, signifying they have been ordered.
+                            # The quantity must be greater than 0, signifying
+                            # they have been ordered.
                             and total_quantity > 0
                         ):
                             patty_total += patty_quantity * burger_value
@@ -1307,16 +1352,19 @@ def serve_items(
         edit_dict (dict[str, int]): The dict to be edited.
         item_name (str): The name of the item to be edited.
         quantity (int): The quantity of the item in the current order.
-        edit_patties (bool): Controls if the patty totals in the dict should also be edited.
+        edit_patties (bool): Controls if the patty totals in the dict should
+        also be edited.
     """
     global burger_type
 
     # If the item provided is in the current dict:
     if item_name in edit_dict:
-        # Its quantity in that dict is altered by subtracting the quantity in the order from it.
+        # Its quantity in that dict is altered by subtracting the quantity in
+        # the order from it.
         edit_dict[item_name] -= quantity
         if edit_patties:
-            # Patties are also removed. This is not needed for the total stock dict.
+            # Patties are also removed. This is not needed for the total stock
+            # dict.
             for patty_type, burger_stats in burger_type.items():
                 if item_name in burger_stats:
                     edit_dict[patty_type] -= burger_stats[item_name] * quantity
@@ -1345,7 +1393,8 @@ def start_order_now(screen, mouse_click, mouse_position) -> int:
 
     Args:
         screen: The current size of the game window.
-        mouse_click: A bool indicating if the mouse has been clicked. Used for event handling.
+        mouse_click: A bool indicating if the mouse has been clicked. Used for
+        event handling.
         mouse_position: The current position of the mouse.
 
     Returns:
@@ -1399,7 +1448,8 @@ def main_menu(screen, mouse_click, mouse_position) -> int:
 
     Args:
         screen: The current size of the game window.
-        mouse_click: A bool indicating if the mouse has been clicked. Used for event handling.
+        mouse_click: A bool indicating if the mouse has been clicked. Used for
+        event handling.
         mouse_position: The current position of the mouse.
 
     Returns:
@@ -1441,7 +1491,8 @@ def main_menu(screen, mouse_click, mouse_position) -> int:
     screen.blit(first_shift_icon_sized, (198, 270))
     screen.blit(scoreboard_icon_sized, (198, 385))
 
-    # The event function checks if the user has clicked play. Pause prevents anything from being accidently clicked.
+    # The event function checks if the user has clicked play. Pause prevents
+    # anything from being accidently clicked.
     if pause:
         wait += 1
     if wait > 5:
@@ -1487,7 +1538,8 @@ def credits(screen, mouse_click, mouse_position) -> int:
 
     Args:
         screen: The screen to display the game on.
-        mouse_click: A bool indicating if the mouse has been clicked. Used for event handling.
+        mouse_click: A bool indicating if the mouse has been clicked. Used for 
+        event handling.
         mouse_position: The current position of the mouse.
 
     Returns:
@@ -1526,7 +1578,8 @@ def credits(screen, mouse_click, mouse_position) -> int:
     # Text for the back button
     screen.blit(back_name_sized, (37, 255))
     screen.blit(back_name_text, (102, 250))
-    # It is then checked if the button has been clicked, then if it has the user returns to the main menu.
+    # It is then checked if the button has been clicked, then if it has the user
+    # returns to the main menu.
     current_event = handle_events(
         mouse_click, mouse_position, None, "click", back, ProgramState.MAIN_MENU, None
     )
@@ -1542,7 +1595,8 @@ def tutorial(screen, mouse_click, mouse_position) -> int:
 
     Args:
         screen: The screen to display on.
-        mouse_click: A bool indicating if the mouse has been clicked. Used for event handling.
+        mouse_click: A bool indicating if the mouse has been clicked. Used for
+        event handling.
         mouse_position: The current position of the mouse.
 
     Returns:
@@ -1590,7 +1644,8 @@ def tutorial(screen, mouse_click, mouse_position) -> int:
             scroll = handle_events(
                 mouse_click, mouse_position, "click", None, previous, -1, None
             )
-            # If the user scrolls backwards, the previous image is displayed, and a pause variable prevents accidental double clicking.
+            # If the user scrolls backwards, the previous image is displayed,
+            # and a pause variable prevents accidental double clicking.
             if scroll == -1:
                 tutorial_select -= 1
                 skip = True
@@ -1605,7 +1660,8 @@ def tutorial(screen, mouse_click, mouse_position) -> int:
                 tutorial_select += 1
                 skip = True
                 wait2 = 0
-        # It is then checked if the button has been clicked, then if it has the user returns to the main menu.
+        # It is then checked if the button has been clicked, then if it has the
+        # user returns to the main menu.
         current_event = handle_events(
             mouse_click,
             mouse_position,
@@ -1615,7 +1671,9 @@ def tutorial(screen, mouse_click, mouse_position) -> int:
             ProgramState.MAIN_MENU,
             None,
         )
-        # If user has clicked the back button, anther pause variable is activated so the back button press isn't cancelled out by the second pause variable being reset.
+        # If user has clicked the back button, anther pause variable is
+        # activated so the back button press isn't cancelled out by the second
+        # pause variable being reset.
         if current_event == 1:
             pause = True
             wait = 0
@@ -1627,7 +1685,8 @@ def name_entry(screen, mouse_click, mouse_position, events) -> int:
 
     Args:
         screen: The current size of the game window.
-        mouse_click: A bool indicating if the mouse has been clicked. Used for event handling.
+        mouse_click: A bool indicating if the mouse has been clicked. Used for
+        event handling.
         mouse_position: The current position of the mouse.
 
     Returns:
@@ -1736,8 +1795,8 @@ def ingame_menu(
     screen, screen_width, screen_height, mouse_click, mouse_position
 ) -> int:
     # The current screen dimensions are globally accessed so the program knows
-    # what the current dimensions are. Menu list is needed to update whats on the menu,
-    # and everything else is for navigation.
+    # what the current dimensions are. Menu list is needed to update whats on
+    # the menu, and everything else is for navigation.
     global \
         current_screen_width, \
         current_screen_height, \
@@ -1753,7 +1812,8 @@ def ingame_menu(
         total_items_required, \
         burger_type, \
         car_served_times, \
-        total_items_ordered
+        total_items_ordered, \
+        expiring_items
 
     # The below code fixes a flickering bug with content onscreen.
     # If the desired screen dimensions aren't the current dimensions:
@@ -1781,7 +1841,8 @@ def ingame_menu(
     if cars:
         # The current car is found in the dict.
         current_car = next(iter(cars))
-        # Its current time is taken using similar code to the display cars for loop, then displayed.
+        # Its current time is taken using similar code to the display cars for
+        # loop, then displayed.
         time_font = number_font.render(
             (car_time((cars[current_car]["car start time"]), False)),
             True,
@@ -1789,19 +1850,23 @@ def ingame_menu(
         )
         screen.blit(time_font, (1055, 210))
 
-        # A bool checking if the order has been completed in initally set to false.
+        # A bool checking if the order has been completed in initally set to
+        # false.
         order_complete: bool = False
-        # For each required item and its quantity in the first order (the dict is 2d so .values is used)
+        # For each required item and its quantity in the first order
+        # (the dict is 2d so .values is used)
         for required_item, required_quantity in next(
             iter(individual_orders.values())
         ).items():
             # Patties are not checked.
             if required_item not in ["10:1", "4:1", "Angus", "Chicken"]:
-                # If there isn't enough items in the stock compared to the needed quantity for each item:
+                # If there isn't enough items in the stock compared to the
+                # needed quantity for each item:
                 if total_stock_items.get(required_item, 0) < required_quantity:
                     # The loop breaks and order_complete is set to false.
                     break
-        # Else is attached to the for loop, so if the for loop is completley completed then this happens:
+        # Else is attached to the for loop, so if the for loop is completley
+        # completed then this happens:
         else:
             # The order is marked as completed.
             order_complete = True
@@ -1851,8 +1916,15 @@ def ingame_menu(
                         if item_name == item_price_name:
                             money += item_price_quantity * quantity
 
+                    # Item expiry is updated.
+                    for expiry_item_name, expiry_date in expiring_items.items():
+                        if item_name == expiry_item_name:
+                            # Depending on the quantity, expiry dates are cleared.
+                            del expiry_date[:quantity]
+
                 deleting = False
-                # Once the items have been removed from the total items required dict, the order can be deleted.
+                # Once the items have been removed from the total items required
+                # dict, the order can be deleted.
                 del individual_orders[served_order]
                 deleted = True
 
@@ -1967,7 +2039,8 @@ def ingame_menu(
 
     # Item expiry is checked. If the list isn't empty:
     expiry()
-    # As menu_list is the variable being used to display the items, it is updated.
+    # As menu_list is the variable being used to display the items, it is
+    # updated.
     menu_list = list(total_stock_items.items())
 
 
@@ -2011,13 +2084,18 @@ def display_menu_items(
                     for burger_name, burger_value in total_items_required.items():
                         # The item is matched between the 2 dicts.
                         if burger_name == item_name:
-                            # Quantity is determined by taking the stock minus the required amount.
+                            # Quantity is determined by taking the stock minus
+                            # the required amount.
                             total_item_quantity = item_quantity - burger_value
 
-                    # If the item is a patty, it needs special treatment because some patties can already be in burgers and therefore don't need to be made.
+                    # If the item is a patty, it needs special treatment because
+                    # some patties can already be in burgers and therefore don't
+                    # need to be made.
                     for patty_type, burger_stats in burger_type.items():
                         if item_name == patty_type:
-                            # A function is used to determine this, then the patties already in burgers are added to the quantity needed.
+                            # A function is used to determine this, then the
+                            # patties already in burgers are added to the
+                            # quantity needed.
                             total_item_quantity += total_patty_amount(item_name, False)
 
                     # A variable assigned to the indexed name and quantity is
@@ -2090,9 +2168,9 @@ def creation_menu(
         error, \
         patty_needed, \
         quantity_patty_needed, \
-        log_expiry_time, \
         current_time, \
         orders_list
+
 
     # Totals for each patty.
     patty_totals: dict[str, int] = {type: 0 for type in burger_type}
@@ -2161,7 +2239,8 @@ def creation_menu(
         screen.blit(order_icons[image_index], (535 + image_index * 110, 80))
         image_index += 1
 
-    # Because the names provided have \n in their name, this piece of code replaces \n with a space so they can be compared properly.
+    # Because the names provided have \n in their name, this piece of code
+    # replaces \n with a space so they can be compared properly.
     proper_items = [name.replace("\n", " ") for name in item_names]
 
     # If there are orders:
@@ -2176,12 +2255,15 @@ def creation_menu(
                 # If the user is in the grill menu:
                 if menu_name == "Grill":
                     for patty_type, burger_stats in burger_type.items():
-                        # Each patty other than chicken is calculated and stored in a dict.
+                        # Each patty other than chicken is calculated and
+                        # stored in a dict.
                         if patty_type != "Chicken":
                             # The item is matched with one of the burgers:
                             if current_item in burger_stats:
-                                # Then its patty is taken and stored in the dict holding patties.
-                                # Patties are checked for in burgers so the user doesn't think they have to make them again.
+                                # Then its patty is taken and stored in the dict
+                                # holding patties. Patties are checked for in
+                                # burgers so the user doesn't think they have to
+                                # make them again.
                                 patty_totals[patty_type] += (
                                     current_quantity * burger_stats[current_item]
                                     - total_patty_amount(patty_type, True)
@@ -2192,7 +2274,8 @@ def creation_menu(
                     # For each item in the current station:
                     for actual_item in proper_items:
                         if actual_item == current_item:
-                            # The index is aquired so it can be displayed at the correct place.
+                            # The index is aquired so it can be displayed at the
+                            # correct place.
                             quantity_index = proper_items.index(actual_item)
 
                             # Quantity is defined.
@@ -2212,18 +2295,23 @@ def creation_menu(
                                 current_item_text, (530 + quantity_index * 110, 15)
                             )
 
-                    # The chicken patty burgers are specially accessed because the chicken patty is shown in a regular menu instead of the patty menu.
+                    # The chicken patty burgers are specially accessed because
+                    # the chicken patty is shown in a regular menu instead of
+                    # the patty menu.
                     for chicken_burger, value in burger_type["Chicken"].items():
-                        # If the item is one of the chicken burgers, chicken is updated accordingly.
+                        # If the item is one of the chicken burgers, chicken is
+                        # updated accordingly.
                         if current_item == chicken_burger:
                             patty_totals["Chicken"] += (
                                 current_quantity * value
                                 - total_patty_amount("Chicken", True)
                             )
 
-            # Once all chicken patties have been accumulated, then they are displayed.
+            # Once all chicken patties have been accumulated, then they are
+            # displayed.
             if patty_totals["Chicken"] > 0:
-                # Ensures chicken patties are not displayed for other menus other than BFM.
+                # Ensures chicken patties are not displayed for other menus
+                # other than BFM.
                 if menu_name == "BFM":
                     quantity = patty_totals["Chicken"] - total_stock_items["Chicken"]
                     if quantity < 0:
@@ -2241,14 +2329,16 @@ def creation_menu(
                 # As long as there is something to display:
                 if total_quantity > 0:
                     if patty_type != "Chicken":
-                        # The patty position in the dict is got so it can be displayed at the appropiate place.
+                        # The patty position in the dict is got so it can be
+                        # displayed at the appropiate place.
                         patty_type_index = list(burger_type.keys()).index(patty_type)
 
                         quantity = total_quantity - total_stock_items[patty_type]
                         if quantity < 0:
                             quantity = 0
 
-                        # The needed patties are calculated and put into a font, then displayed.
+                        # The needed patties are calculated and put into a font,
+                        # then displayed.
                         current_item_text = main_menu_options_xs2.render(
                             ("x" + str(quantity)),
                             True,
@@ -2260,7 +2350,7 @@ def creation_menu(
 
         # This section is for the total section.
 
-        # A list of each item is aquired so the index can be properly determined,
+        # A list of each item is aquired so the index can be properly determined
         # and so the item can be properly located without the value interfering.
         menu_list_names = [item[0] for item in menu_list]
         # Quantity has to be initially defined.
@@ -2361,6 +2451,9 @@ def creation_menu(
                     "end_time": None,
                     "check_patty_requirements": False,
                     "expiry_time": None,
+                    "play_sound": False,
+                    "cooked": pygame.mixer.Sound("sounds/cooked.mp3"),
+                    "log_expiry_time": True,
                 }
 
             # Each rectangles name is assigned to a dictionary as a key with
@@ -2377,10 +2470,11 @@ def creation_menu(
 
     for station_name, rect_info in station_bases.items():
         # For each rectangle, its value is accessed and utilized.
-        # A variable is set to the current station so it can have its quantity updated.
+        # A variable is set to the current station so it can have its quantity
+        # updated.
         item_station = station_names[creation_index]
-        # The time to make each item is stored from the provided values and indexing
-        # through them.
+        # The time to make each item is stored from the provided values and
+        # indexing through them.
         creation_time = timer_duration[creation_index]
         # If clicking inputs are paused:
         if pause is True:
@@ -2427,13 +2521,6 @@ def creation_menu(
             station_status[menu_name][station_name]["end_time"] = (
                 current_time + creation_time
             )
-
-        # If the global status is 1 and the timer has expired (returning True):
-        if station_status[menu_name][station_name]["status"] == 1 and timer(
-            station_status[menu_name][station_name]["end_time"]
-        ):
-            # Status is sent back to the next stage.
-            station_status[menu_name][station_name]["status"] = 2
 
         # The rectangle is drawn based on its previous definition.
         pygame.draw.rect(screen, WHITE, rect_info["station_outline"], DTHRU_OUTLINE)
@@ -2534,20 +2621,24 @@ def creation_menu(
         if station_status[menu_name][station_name]["status"] == 0:
             # If the user doesn't have enough patties:
             if error:
-                # This same line is used for the error message in the name_entry function.
+                # This same line is used for the error message in the name_entry
+                # function.
                 visible = toggle_visibility(last_switch, visible, 3000, False)
-                # Burger requirements are displayed using the global variables provided by the code in status 1.
+                # Burger requirements are displayed using the global variables
+                # provided by the code in status 1.
                 burger_requirement = start_order_font.render(
                     str("MAKE " + str(quantity_patty_needed) + " MORE " + patty_needed),
                     True,
                     RED,
                 )
                 screen.blit(burger_requirement, (300, 300))
-                # The error message is stopped when the visiblity timer runs out.
+                # The error message is stopped when the visiblity timer runs
+                # out.
                 if not visible:
                     error = False
 
             station_status[menu_name][station_name]["check_patty_requirements"] = True
+            station_status[menu_name][station_name]["play_sound"] = True
             # The start circle is drawn with its respective elements.
             pygame.draw.circle(
                 screen, GREEN, rect_info["button_outline"], button_radius
@@ -2680,8 +2771,10 @@ def creation_menu(
                                     ] = False
                                     # The erorr message disappears.
                                     visible = False
-                                    # The patty is taken off the users stock, and the expiry tracker.
+                                    # The patty is taken off the users stock,
+                                    # and the expiry tracker.
                                     total_stock_items[patty_type] -= patty_requirements
+                                    del expiring_items[patty_type][:patty_requirements]
                                     # Display of stock is updated.
                                     menu_list = list(total_stock_items.items())
 
@@ -2703,23 +2796,13 @@ def creation_menu(
             # Makes sure the program correctly logs expiry time.
             if menu_name == "Grill" or menu_name == "BFM":
                 log_expiry_time = True
+                if station_status[menu_name][station_name]["play_sound"]:
+                    # Sound is played.
+                    cooking_sfx.play()
+                    station_status[menu_name][station_name]["play_sound"] = False
 
         # If the item has been made:
         if station_status[menu_name][station_name]["status"] == 2:
-            # If the user is on a menu where items can expire:
-            if log_expiry_time:
-                # The time when the item will expire is logged.
-                station_status[menu_name][station_name]["expiry_time"] = (
-                    current_time + 5000
-                )
-                # The program no longer logs the expiry time, as it only
-                # needs it once.
-                log_expiry_time = False
-
-            # If the item has expired:
-            if timer(station_status[menu_name][station_name]["expiry_time"]):
-                station_status[menu_name][station_name]["status"] = 0
-
             # The text saying to click.
             screen.blit(
                 creation_click,
@@ -2757,6 +2840,8 @@ def creation_menu(
                 rect_info["status"] == 0
                 and station_status[menu_name][station_name]["status"] == 2
             ):
+                # Cooking sound is stopped.
+                station_status[menu_name][station_name]["cooked"].stop()
                 # Status is reverted to the original.
                 station_status[menu_name][station_name]["status"] = 0
                 # A pause timer is activated so the creation button isn't
@@ -2771,7 +2856,8 @@ def creation_menu(
                 menu_list = list(total_stock_items.items())
                 # The time when the item was added to track expiry.
                 time_added = pygame.time.get_ticks()
-                # If the item already exists in the expiry dict, a new value is added to that item.
+                # If the item already exists in the expiry dict, a new value is
+                # added to that item.
                 if item_station in expiring_items:
                     expiring_items[item_station].append(time_added)
                     # Otherwise the item is added.
@@ -2892,6 +2978,36 @@ def creation_menu(
                     visible = False
                     return current_event
 
+def constant_creation_menu():
+    global station_status, current_time
+    for menu_name, station_stats in station_status.items():
+        for station_name, station_info in station_stats.items():
+            # If the global status is 1 and the timer has expired (returning True):
+            if station_info["status"] == 1 and timer(station_info["end_time"]):
+                # Status is sent back to the next stage.
+                station_info["status"] = 2
+                station_info["log_expiry_time"] = True
+            # If the item has been made:
+            if station_info["status"] == 2:
+                if menu_name == "Grill" or menu_name == "BFM":
+                    # If the user is on a menu where items can expire:
+                    if station_info["log_expiry_time"]:
+                        station_info["expiry_time"] = current_time + 5000
+                        # The program no longer logs the expiry time, as it only needs it once.
+                        station_info["log_expiry_time"] = False
+                    # The system plays the cooked sound effect. A variable in the 2D Dict is used so it can be looped and stopped at will.
+                    if not station_info["play_sound"]:
+                        station_info["cooked"].play(100)
+                        station_info["play_sound"] = True
+                        # If the item has expired:
+                    if timer(station_info["expiry_time"]):
+                        station_info["status"] = 0
+                        if station_info["play_sound"]:
+                            # Cooked sound is stopped.
+                            station_info["cooked"].stop()
+                            # Burnt sound effect is played.
+                            burnt_sfx.play()
+                            station_info["play_sound"] = False
 
 def current_order_display():
     """Display the items required for the current order."""
@@ -2906,7 +3022,8 @@ def current_order_display():
     text_position: list[int] = [65, 165, 265, 365, 465, 65, 165, 265, 365, 465]
     # The list of patty quantity positions.
     patty_quantity_position: list[int] = [80, 210, 340, 460]
-    # An index variable to scroll through each position in the list. It starts at -1 because it is triggered as soon as the for loop begins.
+    # An index variable to scroll through each position in the list. It starts
+    # at -1 because it is triggered as soon as the for loop begins.
     circle_x_count: int = -1
     # The y position of the circle.
     circle_y: int = 320
@@ -2916,7 +3033,8 @@ def current_order_display():
     name_y: int = 360
     # Y position of the quantity.
     quantity_y: int = 380
-    # A dict holding the patty totals for the current order. For each patty type, it initially sets it as 0.
+    # A dict holding the patty totals for the current order. For each patty
+    # type, it initially sets it as 0.
     patty_totals: dict[str, int] = {type: 0 for type in burger_type}
 
     # A key is aquired of the current order, if there are orders.
@@ -2924,7 +3042,8 @@ def current_order_display():
         aquire_key = orders_list[0]
         if aquire_key in individual_orders:
             current_order_stats = individual_orders[aquire_key]
-            # For each item in the order, a circle is drawn with the coordinates specified above.
+            # For each item in the order, a circle is drawn with the coordinates
+            # specified above.
             for item, quantity in current_order_stats.items():
                 # Count is increased.
                 circle_x_count += 1
@@ -2935,7 +3054,8 @@ def current_order_display():
                     name_y = 520
                     quantity_y = 540
 
-                # If the requirement for a item has been fufilled, the colour is changed.
+                # If the requirement for a item has been fufilled, the colour is
+                # changed.
                 if total_stock_items[item] >= quantity:
                     colour = GREEN
                 else:
@@ -2957,7 +3077,8 @@ def current_order_display():
                     item_name_text,
                     (text_position[circle_x_count] - item_name_width, name_y),
                 )
-                # Item quantity is taken by taking current stock and comparing it the quantity.
+                # Item quantity is taken by taking current stock and comparing
+                # it the quantity.
                 quantity_text = quantity_font.render(
                     str(total_stock_items[item]) + "/" + str(quantity), True, colour
                 )
@@ -2967,7 +3088,8 @@ def current_order_display():
                     (5 + text_position[circle_x_count] - quantity_width, quantity_y),
                 )
 
-                # The current order is compared to the dict with the images for each item.
+                # The current order is compared to the dict with the images for
+                # each item.
                 for item_name, item_image in current_order_images.items():
                     # If there is a match on both dicts:
                     if item == item_name:
@@ -2976,17 +3098,21 @@ def current_order_display():
                             item_image, (image_position[circle_x_count], image_y)
                         )
 
-                # The ordered item is compared to the item in the burger_type dict.
+                # The ordered item is compared to the item in the burger_type
+                # dict.
                 for patty_type, burger_stats in burger_type.items():
                     if item in burger_stats:
-                        # The patty total is updated using the quantity of the item ordered and the amount of patties in the burger.
+                        # The patty total is updated using the quantity of the
+                        # item ordered and the amount of patties in the burger.
                         patty_totals[patty_type] += quantity * burger_stats[item]
 
-            # Once patty totals have been updated, they are displayed in this for loop.
+            # Once patty totals have been updated, they are displayed in this
+            # for loop.
             for patty_type, total_quantity in patty_totals.items():
                 # Display only occurs if that patty has been ordered.
                 if total_quantity > 0:
-                    # A variable is made by checking the patty type position in the dict, converted to a list.
+                    # A variable is made by checking the patty type position in
+                    # the dict, converted to a list.
                     patty_type_index = list(burger_type.keys()).index(patty_type)
                     # Text for the patty is then defined.
                     patty_quantity_text = quantity_font.render(
@@ -2994,7 +3120,8 @@ def current_order_display():
                     )
                     # Text is centered, then displayed.
                     patty_width = (patty_quantity_text.get_width() - 6) / 2
-                    # The index variable is used to display the quantity under the correct patty.
+                    # The index variable is used to display the quantity under
+                    # the correct patty.
                     screen.blit(
                         patty_quantity_text,
                         (patty_quantity_position[patty_type_index] - patty_width, 670),
@@ -3143,7 +3270,8 @@ def handle_events(
                 if name_length < 4:
                     # Their inputs are deleted.
                     user_name = ""
-        # If all is well, the user_name is returned so another function can use it.
+        # If all is well, the user_name is returned so another function can use
+        # it.
         return user_name
 
     # If the caller needs to check if the user pressed enter:
@@ -3206,7 +3334,8 @@ while running:
         # otherwise it would no longer equal GAME_OPEN, ending the current
         # phase. So state and current_state are constantly interchanged so the
         # program functions correctly.
-        # The bool indicating if the mouse has been clicked and its position is passed to the function.
+        # The bool indicating if the mouse has been clicked and its position is
+        # passed to the function.
         state = start_order_now(screen, mouse_click, mouse_position)
         # Prevents accidently button clickage.
         pause = True
@@ -3221,12 +3350,14 @@ while running:
         main_screen_now(screen)
         # Variables interchange.
         current_state = main_menu(screen, mouse_click, mouse_position)
-        # The other pause variable is combined with the other so the back button can be registered correctly.
+        # The other pause variable is combined with the other so the back button
+        # can be registered correctly.
         if pause:
             wait += 1
         if wait > 5:
             pause = False
-            # A different pause variable needs to be used to they aren't mixed up and access isn't hindered.
+            # A different pause variable needs to be used to they aren't mixed
+            # up and access isn't hindered.
             skip = True
             wait2 = 0
 
@@ -3253,7 +3384,10 @@ while running:
             obtained_start_time = True
         # Gets rid of the current error message.
         visible = False
+        if station_status:
+            constant_creation_menu()
 
+    # States for the different creation menus.
     if current_state == 6:
         screen.fill(BLACK)
         state = creation_menu(
@@ -3281,6 +3415,7 @@ while running:
             mouse_click,
             mouse_position,
         )
+        constant_creation_menu()
 
     if current_state == 7:
         screen.fill(BLACK)
@@ -3303,6 +3438,7 @@ while running:
             mouse_click,
             mouse_position,
         )
+        constant_creation_menu()
 
     if current_state == 8:
         screen.fill(BLACK)
@@ -3325,6 +3461,7 @@ while running:
             mouse_click,
             mouse_position,
         )
+        constant_creation_menu()
 
     if state == 9:
         screen.fill(BLACK)
@@ -3367,6 +3504,7 @@ while running:
             mouse_click,
             mouse_position,
         )
+        constant_creation_menu()
 
     if state == 10:
         screen.fill(BLACK)
@@ -3398,7 +3536,9 @@ while running:
             mouse_click,
             mouse_position,
         )
+        constant_creation_menu()
 
+    # If the user has lost:
     if game_end == 11:
         current_state = None
         state = None
@@ -3406,6 +3546,7 @@ while running:
         begin_ordering = False
         screen.blit(your_fired, (150, 200))
 
+    # Credits and tutorial.
     if current_state == 12:
         screen.fill(BLACK)
         state = credits(screen, mouse_click, mouse_position)
