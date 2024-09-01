@@ -3,6 +3,9 @@
 # Importing pygame into the program
 import pygame
 
+# Allows optional type hint returns and multiple different return types.
+from typing import Optional, Union
+
 # Used for distance calculations when checking mouse clicks.
 import math
 
@@ -47,15 +50,15 @@ game_end: int = 0
 # CONSTANTS
 
 # The rgb code for each color.
-YELLOW = (255, 255, 0)
-DARK_YELLOW = (254, 221, 0)
-BLACK = (0, 0, 0)
-RED = (255, 0, 0)
-WHITE = (255, 255, 255)
-BLUE = (8, 98, 168)
-GREEN = (80, 200, 120)
-ORANGE = (255, 127, 0)
-GREY = (128, 128, 128)
+YELLOW: tuple = (255, 255, 0)
+DARK_YELLOW: tuple = (254, 221, 0)
+BLACK: tuple = (0, 0, 0)
+RED: tuple = (255, 0, 0)
+WHITE: tuple = (255, 255, 255)
+BLUE: tuple = (8, 98, 168)
+GREEN: tuple = (80, 200, 120)
+ORANGE: tuple = (255, 127, 0)
+GREY: tuple = (128, 128, 128)
 # Outline for most of the boxes displayed in game.
 OUTLINE_WIDTH: int = 5
 # Width and height of boxes on the second kiosk screen.
@@ -65,12 +68,12 @@ BUTTON2_HEIGHT_EXTENDED: int = 96
 # Size of the icons used on the second kiosk screen.
 ICON: tuple[int, int] = 50, 50
 # The window dimensions before the game officially begins.
-PREGAME_SCREEN_WIDTH = 1000
-PREGRAME_SCREEN_HEIGHT = 900
+PREGAME_SCREEN_WIDTH: int = 1000
+PREGRAME_SCREEN_HEIGHT: int = 900
 # The dimensions of the Drive-Thru boxes.
-DTHRU_WIDTH = 200
-DTHRU_HEIGHT = 100
-DTHRU_OUTLINE = 3
+DTHRU_WIDTH: int = 200
+DTHRU_HEIGHT: int = 100
+DTHRU_OUTLINE: int = 3
 # Size of the menu items.
 MENU_ICON: tuple[int, int] = 60, 60
 PATTY_ICON: tuple[int, int] = 65, 65
@@ -100,7 +103,7 @@ current_screen_height = screen_height
 # provided.
 screen = pygame.display.set_mode((screen_width, screen_height))
 # Sets the users name to none so they can make their own.
-user_name = ""
+user_name: str = ""
 # The title of the game window.
 pygame.display.set_caption("McHugo's")
 # This boolean controls the flashing start order button, and when its visible.
@@ -143,10 +146,10 @@ total_stock_items: dict[str, int] = {
 # All of the menu items with their values put into a list.
 menu_list = list(total_stock_items.items())
 # Dictionary for individual rectangles so they can be used specifically.
-station_bases = {}
+station_bases: dict = {}
 # To define which station was triggered. Global variable used to maintain
 # status. This becomes a 2d dictionary.
-station_status = {}
+station_status: dict[str, dict] = {}
 # The variables are globablly used to prevent a glitch where a button appears
 # as another one closes, resulting in them clicking it unintentionally. Wait
 # prevents that button from being clicked.
@@ -227,7 +230,7 @@ total_items_required: dict[str, int] = {
     "Chicken": 0,
 }
 # Each individual order. Becomes a 2D Dict.
-individual_orders = {}
+individual_orders: dict[str, dict[str, int]] = {}
 # Keeps track of the order number. Global variable.
 order_index: int = 0
 # The menu for the AI to order from.
@@ -399,7 +402,7 @@ car_coords: list[int] = [
     -50,
 ]
 # The 2D dict of cars.
-cars = {}
+cars: dict[int, dict] = {}
 # The amount of current orders.
 total_orders: int = 0
 # The order number used to identify the car.
@@ -409,7 +412,7 @@ orders_list = None
 # The amount of items in an order. Global.
 total_items: int = 0
 # Used to animate the cars moving.
-last_tick = pygame.time.get_ticks()
+last_tick: int = pygame.time.get_ticks()
 # The amount of excess cars.
 excess: int = 0
 # Checks if a car has been deleted.
@@ -420,7 +423,7 @@ deleting: bool = False
 danger_box_positions: list[int] = [885, 735, 585, 435, 285, 135]
 # Contains what is in the current order. Global variable used for checking whats
 # in the order. It is a list aquired with a key.
-order_stats = []
+order_stats: list[str] = []
 # Global dict to assign orders to combos so they can be displayed.
 order_combo: dict[str, str] = {}
 # Keeps track of when a car was served.
@@ -941,7 +944,7 @@ def ai_ordering() -> None:
 
         # The AI waits between 3 and 40 seconds. * 1000 converts to ms.
         if not obtained_wait:
-            wait_order = random.randint(6, 43) * 1000 + current_time
+            wait_order = random.randint(5, 45) * 1000 + current_time
             # Only gets the obtained number once.
             obtained_wait = True
 
@@ -989,7 +992,7 @@ def ai_ordering() -> None:
 
                 while items_selected > 0:
                     # The amount of items to buy is randomly determined.
-                    item_purchased = random.randint(0, 5)
+                    item_purchased = random.randint(1, 5)
                     # The item is determined using the index of the purchased
                     # item.
                     item_name = ordering_menu[item_purchased]
@@ -1015,7 +1018,8 @@ def ai_ordering() -> None:
                                 total_items_required[patty_type] += patty_requirements
 
                 # The combo name is assigned to a dict logging each orders combo
-                # with a "+" next to it to signify a random combo has been added.
+                # with a "+" next to it to signify a random combo has been
+                # added.
                 order_combo[order_number] = random_combo_name + "+"
             else:
                 # Otherwise, it is added normally.
@@ -1029,7 +1033,7 @@ def ai_ordering() -> None:
 
 
 def game_time(initial_start: int) -> int:
-    """Keeps track of how long is left of the game.
+    """Keep track of how long is left of the game.
 
     Args:
         initial_start (int): When the game begun.
@@ -1055,11 +1059,15 @@ def game_time(initial_start: int) -> int:
     return time_left
 
 
-def display_cars(display: bool):
+def display_cars(display: bool) -> Optional[int]:
     """Display cars representing orders.
 
     Args:
         display (bool): Whether to display the cars or not.
+
+    Returns:
+        Optional[int]: If the user has lost the game, the lose game state is
+        returned.
     """
     global \
         ordered, \
@@ -1156,7 +1164,7 @@ def display_cars(display: bool):
         # If the cars should be displayed:
         if display:
             timer_index: int = 0
-            # Each one is displayed:
+            # Each one is displayed, for the first 6 cars.
             for car_number, car_stats in cars.items():
                 if timer_index < 7:
                     screen.blit(car_sized, (car_stats["x"], 10))
@@ -1188,7 +1196,7 @@ def display_cars(display: bool):
             delete_index += 1
 
 
-def car_time(initial_start: int, return_seconds: bool):
+def car_time(initial_start: int, return_seconds: bool) -> Union[str, int]:
     """Timer for each car.
 
     Args:
@@ -1196,7 +1204,8 @@ def car_time(initial_start: int, return_seconds: bool):
         return_seconds (bool): If the function should only return seconds.
 
     Returns:
-        The car time in the drive thru.
+        Union[str, int]: The car time in the drive thru as a string if
+        return_seconds is false, otherwise the car time in seconds as a integer.
     """
     global current_time
     # Time in ms is calculated.
@@ -1217,7 +1226,7 @@ def car_time(initial_start: int, return_seconds: bool):
         return seconds
 
 
-def car_colour(time: int):
+def car_colour(time: int) -> tuple:
     """Colour of the car timer.
 
     Args:
@@ -1236,14 +1245,14 @@ def car_colour(time: int):
     return colour
 
 
-def danger_meter(order_total):
+def danger_meter(order_total: int) -> pygame.Surface:
     """Calculate danger of the order using size.
 
     Args:
         order_total: How big the order is.
 
     Returns:
-        An image displaying danger.
+        pygame.Surface: An image displaying danger.
     """
     # Depending on order size, an image of the order size is returned.
     if order_total <= 5:
@@ -1319,7 +1328,7 @@ def total_patty_amount(patty_name: str, current_order: bool) -> int:
     return patty_total
 
 
-def average_car_time(return_seconds: bool):
+def average_car_time(return_seconds: bool) -> Union[str, int]:
     """Calculate the average time to serve a car.
 
     Args:
@@ -1327,7 +1336,9 @@ def average_car_time(return_seconds: bool):
         time.
 
     Returns:
-        _type_: Returns either the average time in seconds or minutes:seconds.
+        Union[str, int]: The average car time in the drive thru as a string if
+        return_seconds is false, otherwise the average car time in seconds as a
+        integer.
     """
     global car_served_times
 
@@ -1345,7 +1356,7 @@ def average_car_time(return_seconds: bool):
 
 def serve_items(
     edit_dict: dict[str, int], item_name: str, quantity: int, edit_patties: bool
-):
+) -> None:
     """Serve off items from dicts corresponding to the order.
 
     Args:
@@ -1373,11 +1384,11 @@ def serve_items(
 # CORE GAME
 
 
-def main_screen_now(screen) -> None:
+def main_screen_now(screen: pygame.Surface) -> None:
     """Display the core elements of the game screen.
 
     Args:
-        screen: The current size of the game window.
+        screen (pygame.Surface): The current size of the game window.
     """
     # Draws the various elements on screen.
     screen.blit(background, (0, 0))
@@ -1388,14 +1399,16 @@ def main_screen_now(screen) -> None:
     screen.blit(version, (620, 840))
 
 
-def start_order_now(screen, mouse_click, mouse_position) -> int:
+def start_order_now(
+    screen: pygame.Surface, mouse_click: bool, mouse_position: tuple[int, int]
+) -> int:
     """Display the start button for access to the main menu.
 
     Args:
-        screen: The current size of the game window.
-        mouse_click: A bool indicating if the mouse has been clicked. Used for
-        event handling.
-        mouse_position: The current position of the mouse.
+        screen (pygame.Surface): The current size of the game window.
+        mouse_click (bool): A bool indicating if the mouse has been clicked.
+        Used for event handling.
+        mouse_position (tuple[int, int]): The current position of the mouse.
 
     Returns:
         int: What game state the game should be in.
@@ -1443,14 +1456,16 @@ def start_order_now(screen, mouse_click, mouse_position) -> int:
     return current_event
 
 
-def main_menu(screen, mouse_click, mouse_position) -> int:
-    """The main menu where the user can choose what they want to do.
+def main_menu(
+    screen: pygame.Surface, mouse_click: bool, mouse_position: tuple[int, int]
+) -> int:
+    """Display the main menu.
 
     Args:
-        screen: The current size of the game window.
-        mouse_click: A bool indicating if the mouse has been clicked. Used for
-        event handling.
-        mouse_position: The current position of the mouse.
+        screen (pygame.Surface): The current size of the game window.
+        mouse_click (bool): A bool indicating if the mouse has been clicked.
+        Used for event handling.
+        mouse_position (tuple[int, int]): The current position of the mouse.
 
     Returns:
         int: What game state the game should be in.
@@ -1491,7 +1506,7 @@ def main_menu(screen, mouse_click, mouse_position) -> int:
     screen.blit(first_shift_icon_sized, (198, 270))
     screen.blit(scoreboard_icon_sized, (198, 385))
 
-    # The event function checks if the user has clicked play. Pause prevents
+    # The event function checks if the user has clicked a button. Pause prevents
     # anything from being accidently clicked.
     if pause:
         wait += 1
@@ -1532,19 +1547,21 @@ def main_menu(screen, mouse_click, mouse_position) -> int:
             return current_event
 
 
-def credits(screen, mouse_click, mouse_position) -> int:
-    global pause, wait
+def credits(
+    screen: pygame.Surface, mouse_click: bool, mouse_position: tuple[int, int]
+) -> int:
     """Display game credits.
 
     Args:
-        screen: The screen to display the game on.
-        mouse_click: A bool indicating if the mouse has been clicked. Used for 
-        event handling.
-        mouse_position: The current position of the mouse.
+        screen (pygame.Surface): The screen to display the game on.
+        mouse_click (bool): A bool indicating if the mouse has been clicked.
+        Used for event handling.
+        mouse_position (tuple[int, int]): The current position of the mouse.
 
     Returns:
         int: What game state the game should be in.
     """
+    global pause, wait
     # The credits are defined.
     credit_names: list[str] = [
         "Kiosk licensed from by Adobe Stock",
@@ -1590,14 +1607,16 @@ def credits(screen, mouse_click, mouse_position) -> int:
     return current_event
 
 
-def tutorial(screen, mouse_click, mouse_position) -> int:
+def tutorial(
+    screen: pygame.Surface, mouse_click: bool, mouse_position: tuple[int, int]
+) -> int:
     """Display the tutorial for the game.
 
     Args:
-        screen: The screen to display on.
-        mouse_click: A bool indicating if the mouse has been clicked. Used for
-        event handling.
-        mouse_position: The current position of the mouse.
+        screen (pygame.Surface): The screen to display on.
+        mouse_click (bool): A bool indicating if the mouse has been clicked.
+        Used for event handling.
+        mouse_position (tuple[int, int]): The current position of the mouse.
 
     Returns:
         int: What game state the game should be in.
@@ -1637,7 +1656,8 @@ def tutorial(screen, mouse_click, mouse_position) -> int:
         wait2 += 1
     if wait2 > 5:
         skip = False
-        # Arrows are only displayed if the user can actually go back or forwards.
+        # Arrows are only displayed if the user can actually go back or
+        # forwards.
         if tutorial_select > 0:
             previous = previous_image.get_rect(center=previous_coords)
             screen.blit(previous_image, previous)
@@ -1680,14 +1700,17 @@ def tutorial(screen, mouse_click, mouse_position) -> int:
         return current_event
 
 
-def name_entry(screen, mouse_click, mouse_position, events) -> int:
-    """Where the user can enter their name.
+def name_entry(
+    screen: pygame.Surface, mouse_click: bool, mouse_position: tuple[int, int], events
+) -> int:
+    """Document the users name.
 
     Args:
-        screen: The current size of the game window.
-        mouse_click: A bool indicating if the mouse has been clicked. Used for
-        event handling.
-        mouse_position: The current position of the mouse.
+        screen (pygame.Surface): The current size of the game window.
+        mouse_click (bool): A bool indicating if the mouse has been clicked.
+        Used for event handling.
+        mouse_position (tuple[int, int]): The current position of the mouse.
+        events: Each possible pygame event.
 
     Returns:
         int: What game state the game should be in.
@@ -1751,7 +1774,8 @@ def name_entry(screen, mouse_click, mouse_position, events) -> int:
             # This is used so the program can tell what error was made as there
             # are two types.
             error_type = current_event
-            # visible is initially set to true so the program displays the error.
+            # visible is initially set to true so the program displays the
+            # error.
             visible = True
             # The program updates last_switch with the new time since the error
             # was made.
@@ -1792,8 +1816,24 @@ def name_entry(screen, mouse_click, mouse_position, events) -> int:
 
 
 def ingame_menu(
-    screen, screen_width, screen_height, mouse_click, mouse_position
+    screen: pygame.Surface,
+    screen_width: int,
+    screen_height: int,
+    mouse_click: bool,
+    mouse_position: tuple[int, int],
 ) -> int:
+    """Render the base of the ingame menu.
+
+    Args:
+        screen (pygame.Surface): The current size of the game window.
+        screen_width (int): The width of the screen.
+        screen_height (int): The height of the screen.
+        mouse_click (bool): A bool indicating if the mouse has been clicked.
+        mouse_position (tuple[int, int]): The current position of the mouse.
+
+    Returns:
+        int: What game state the game should be in.
+    """
     # The current screen dimensions are globally accessed so the program knows
     # what the current dimensions are. Menu list is needed to update whats on
     # the menu, and everything else is for navigation.
@@ -1919,7 +1959,8 @@ def ingame_menu(
                     # Item expiry is updated.
                     for expiry_item_name, expiry_date in expiring_items.items():
                         if item_name == expiry_item_name:
-                            # Depending on the quantity, expiry dates are cleared.
+                            # Depending on the quantity, expiry dates are
+                            # cleared.
                             del expiry_date[:quantity]
 
                 deleting = False
@@ -2037,7 +2078,7 @@ def ingame_menu(
     if current_event == ProgramState.BFM:
         return current_event
 
-    # Item expiry is checked. If the list isn't empty:
+    # Item expiry is checked.
     expiry()
     # As menu_list is the variable being used to display the items, it is
     # updated.
@@ -2051,7 +2092,7 @@ def display_menu_items(
     max_index: int,
     display_type: str,
 ) -> None:
-    """Displays the menu images and text for the total stock.
+    """Display the menu images and text for the total stock.
 
     Args:
         x_positions (list[int]): The x positions of the items to draw.
@@ -2133,17 +2174,41 @@ def display_menu_items(
 def creation_menu(
     station_names: list[str],
     menu_name: str,
-    menu_image,
-    order_icons: list,
-    creation_icons: list,
+    menu_image: pygame.Surface,
+    order_icons: list[pygame.Surface],
+    creation_icons: list[pygame.Surface],
     item_names: list[str],
     timer_duration: list[int],
-    mouse_click,
-    mouse_position,
+    mouse_click: bool,
+    mouse_position: tuple[int, int],
     x_positions: list[int] = [40, 430, 820],
     y_positions: list[int] = [170, 430],
     button_radius: int = 80,
 ) -> int:
+    """Render the menu to make items.
+
+    Args:
+        station_names (list[str]): The name of each indivdual station.
+        menu_name (str): The name of the current menu.
+        menu_image (pygame.Surface): The image representing the menu.
+        order_icons (list[pygame.Surface]): The icons for each possible item
+        which can be ordered.
+        creation_icons (list[pygame.Surface]): The icon for the item when it has
+        been made.
+        item_names (list[str]): Each items name in the menu.
+        timer_duration (list[int]): The duration for each items timer.
+        mouse_click (bool): A bool indicating if the mouse has been clicked.
+        mouse_position (tuple[int, int]): The current position of the mouse.
+        x_positions (list[int]): X Positions to position the station
+        at. Defaults to [40, 430, 820].
+        y_positions (list[int]): Y Positions to position the station
+        at. Defaults to [170, 430].
+        button_radius (int): The radius of the button to make items.
+        Defaults to 80.
+
+    Returns:
+        int: What game state the game should be in.
+    """
     # The status of each station needs to be globally accessed so it can be
     # maintained. The same goes for pause and wait, and the menu list needs to
     # be accessed so its quantities can be updated.
@@ -2621,8 +2686,8 @@ def creation_menu(
         if station_status[menu_name][station_name]["status"] == 0:
             # If the user doesn't have enough patties:
             if error:
-                # This same line is used for the error message in the name_entry
-                # function.
+                # This same line is used for the error message in the
+                # name_entry function.
                 visible = toggle_visibility(last_switch, visible, 3000, False)
                 # Burger requirements are displayed using the global variables
                 # provided by the code in status 1.
@@ -2637,6 +2702,7 @@ def creation_menu(
                 if not visible:
                     error = False
 
+            # Variables are prepared for use by initally setting them to True.
             station_status[menu_name][station_name]["check_patty_requirements"] = True
             station_status[menu_name][station_name]["play_sound"] = True
             # The start circle is drawn with its respective elements.
@@ -2795,7 +2861,6 @@ def creation_menu(
             creation_status = status_wait
             # Makes sure the program correctly logs expiry time.
             if menu_name == "Grill" or menu_name == "BFM":
-                log_expiry_time = True
                 if station_status[menu_name][station_name]["play_sound"]:
                     # Sound is played.
                     cooking_sfx.play()
@@ -2978,28 +3043,38 @@ def creation_menu(
                     visible = False
                     return current_event
 
-def constant_creation_menu():
+def constant_creation_menu() -> None:
+    """Manage variables that the creation menu uses constantly, even if the user
+    isn't on it.
+    """
     global station_status, current_time
     for menu_name, station_stats in station_status.items():
         for station_name, station_info in station_stats.items():
-            # If the global status is 1 and the timer has expired (returning True):
+            # If the global status is 1 and the timer has expired
+            # (returning True):
             if station_info["status"] == 1 and timer(station_info["end_time"]):
                 # Status is sent back to the next stage.
                 station_info["status"] = 2
                 station_info["log_expiry_time"] = True
+
             # If the item has been made:
             if station_info["status"] == 2:
                 if menu_name == "Grill" or menu_name == "BFM":
                     # If the user is on a menu where items can expire:
                     if station_info["log_expiry_time"]:
                         station_info["expiry_time"] = current_time + 5000
-                        # The program no longer logs the expiry time, as it only needs it once.
+                        # The program no longer logs the expiry time, as it only
+                        # needs it once.
                         station_info["log_expiry_time"] = False
-                    # The system plays the cooked sound effect. A variable in the 2D Dict is used so it can be looped and stopped at will.
+
+                    # The system plays the cooked sound effect. A variable in
+                    # the 2D Dict is used so it can be looped and stopped at
+                    # will.
                     if not station_info["play_sound"]:
                         station_info["cooked"].play(100)
                         station_info["play_sound"] = True
                         # If the item has expired:
+
                     if timer(station_info["expiry_time"]):
                         station_info["status"] = 0
                         if station_info["play_sound"]:
@@ -3009,7 +3084,7 @@ def constant_creation_menu():
                             burnt_sfx.play()
                             station_info["play_sound"] = False
 
-def current_order_display():
+def current_order_display() -> None:
     """Display the items required for the current order."""
 
     global orders_list, menu_list, total_stock_items, burger_type, order_combo
@@ -3146,7 +3221,7 @@ def current_order_display():
     screen.blit(chicken_patty_name, (440, 650))
 
 
-def end_game():
+def end_game() -> None:
     """Display stats for the end of the game."""
     global orders_list, cars
     # Shift over text.
@@ -3181,8 +3256,8 @@ def end_game():
 
 
 def handle_events(
-    click,
-    mouse_pos,
+    click: bool,
+    mouse_pos: tuple[int, int],
     event,
     keystroke_type: str,
     button,
@@ -3190,8 +3265,8 @@ def handle_events(
     button_state: int,
     create_button: bool = False,
     radius: int = 80,
-) -> int:
-    """_summary_
+) -> int | str:
+    """Handle all the pygame related events, such as clicking.
 
     Args:
         click: A bool indicating if the mouse has been clicked.
@@ -3203,9 +3278,9 @@ def handle_events(
         button_state (int): The current state of the button.
         (e.g whether it has been clicked or not, represented in ints.)
         create_button (bool): Whether the button is the create button used for
-        item creation.
-        radius: The radius of the creation button, used if create_button is
-        true.
+        item creation. Defaulted to False.
+        radius (int): The radius of the creation button, used if create_button
+        is true. Defaulted to 80.
 
     Returns:
         int | str: The game state to move to, or an errors name.
@@ -3370,6 +3445,8 @@ while running:
         wait2 = 0
 
     if state == 5:
+        # Errors are cleared.
+        error = False
         # Prevents the user from accidently clicking a station.
         pause = True
         # Reset the wait count for the pause.
