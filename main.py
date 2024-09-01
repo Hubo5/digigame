@@ -1881,6 +1881,8 @@ def ingame_menu(
     if cars:
         # The current car is found in the dict.
         current_car = next(iter(cars))
+        # The order to be deleted is also defined.
+        served_order = next(iter(individual_orders))
         # Its current time is taken using similar code to the display cars for
         # loop, then displayed.
         time_font = number_font.render(
@@ -1925,24 +1927,8 @@ def ingame_menu(
                 served_car = next(iter(cars))
                 # It is moved offscreen.
                 cars[served_car]["target"] = 1250
-                # The deleting process begins.
-                deleting = True
 
-        if deleting:
-            # Served car needs to be redefined.
-            served_car = next(iter(cars))
-            # The order to be deleted is also defined.
-            served_order = next(iter(individual_orders))
-            # If the car has reached its target:
-            if cars[served_car]["x"] == 1250:
-                # Its info is deleted, and control is handed to the display cars
-                # function to update the rest of the cars.
-                # Car serve time is taken by adding it to the list.
-                car_served_times.append(
-                    car_time(cars[served_car]["car start time"], True)
-                )
-                # The car is deleted.
-                del cars[served_car]
+                # Order is then deleted.
 
                 # Items are scanned for in both dicts and then deleted.
                 for item_name, quantity in individual_orders[served_order].items():
@@ -1962,11 +1948,27 @@ def ingame_menu(
                             # Depending on the quantity, expiry dates are
                             # cleared.
                             del expiry_date[:quantity]
+                # The deleting process begins.
+                deleting = True
 
-                deleting = False
+        if deleting:
+            # Served car needs to be redefined.
+            served_car = next(iter(cars))
+            # If the car has reached its target:
+            if cars[served_car]["x"] == 1250:
                 # Once the items have been removed from the total items required
                 # dict, the order can be deleted.
                 del individual_orders[served_order]
+                # Its info is deleted, and control is handed to the display cars
+                # function to update the rest of the cars.
+                # Car serve time is taken by adding it to the list.
+                car_served_times.append(
+                    car_time(cars[served_car]["car start time"], True)
+                )
+                # The car is deleted.
+                del cars[served_car]
+
+                deleting = False
                 deleted = True
 
     # Drawing circles for unplaced orders.
