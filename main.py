@@ -50,15 +50,15 @@ game_end: int = 0
 # CONSTANTS
 
 # The rgb code for each color.
-YELLOW: tuple = (255, 255, 0)
-DARK_YELLOW: tuple = (254, 221, 0)
-BLACK: tuple = (0, 0, 0)
-RED: tuple = (255, 0, 0)
-WHITE: tuple = (255, 255, 255)
-BLUE: tuple = (8, 98, 168)
-GREEN: tuple = (80, 200, 120)
-ORANGE: tuple = (255, 127, 0)
-GREY: tuple = (128, 128, 128)
+YELLOW: tuple[int, int, int] = (255, 255, 0)
+DARK_YELLOW: tuple[int, int, int] = (254, 221, 0)
+BLACK: tuple[int, int, int] = (0, 0, 0)
+RED: tuple[int, int, int] = (255, 0, 0)
+WHITE: tuple[int, int, int] = (255, 255, 255)
+BLUE: tuple[int, int, int] = (8, 98, 168)
+GREEN: tuple[int, int, int] = (80, 200, 120)
+ORANGE: tuple[int, int, int] = (255, 127, 0)
+GREY: tuple[int, int, int] = (128, 128, 128)
 # Outline for most of the boxes displayed in game.
 OUTLINE_WIDTH: int = 5
 # Width and height of boxes on the second kiosk screen.
@@ -699,7 +699,7 @@ radioactivechicken_creation_icon = pygame.transform.scale(
 chickenlittle_creation_icon = pygame.transform.scale(chicken_little, (CREATED_ICON))
 
 # These lists needs to be defined down here where the images have been defined.
-menu_images: list = [
+menu_images: list[pygame.Surface] = [
     big_hugo_sized_t,
     francie_frenzy_sized_t,
     improper_slammer_sized_t,
@@ -726,7 +726,7 @@ grill_names: list[str] = [
     "4:1",
     "Angus",
 ]
-grill_creation: list = [
+grill_creation: list[pygame.Surface] = [
     hugopatty_creation_icon,
     slammerpatty_creation_icon,
     anguspatty_creation_icon,
@@ -750,7 +750,7 @@ bfm_names: list[str] = [
     "McBullets",
     "Chicken",
 ]
-bfm_creation: list = [
+bfm_creation: list[pygame.Surface] = [
     fries_creation_icon,
     mcbullets_creation_icon,
     chicken_creation_icon,
@@ -767,7 +767,7 @@ bfm_timers: list[int] = [
     7000,
 ]
 # Menu items linked to images
-current_order_images: dict[str] = {
+current_order_images: dict[str, pygame.Surface] = {
     "Big Hugo": big_hugo_sized,
     "Francie Frenzy": francie_frenzy_sized,
     "5/4 Slammer": improper_slammer_sized,
@@ -3225,7 +3225,7 @@ def current_order_display() -> None:
 
 def end_game() -> None:
     """Display stats for the end of the game."""
-    global orders_list, cars
+    global orders_list, cars, money
     # Shift over text.
     screen.blit(shift_over, (200, 0))
     # A list of the cars is aquired so the order number can be found.
@@ -3235,6 +3235,8 @@ def end_game() -> None:
     score = round(score, 2)
     # The total orders served is the first car waiting minus 1.
     order_total = cars_list[0] - 1
+    # Money is rounded.
+    money = round(money, 2)
     # Each variable has its text defined, then displayed.
 
     final_total_order = main_menu_options_xs3.render(
