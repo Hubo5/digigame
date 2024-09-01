@@ -1044,7 +1044,7 @@ def game_time(initial_start: int) -> int:
     global current_time
 
     # The time the game begun, plus 8 minutes (the duration of the game.)
-    begin_time = initial_start + 480000
+    begin_time = initial_start + 420000
     # Seconds are calculated and converted.
     seconds = (begin_time - current_time) // 1000
     # How many minutes are left.
