@@ -423,7 +423,7 @@ deleting: bool = False
 danger_box_positions: list[int] = [885, 735, 585, 435, 285, 135]
 # Contains what is in the current order. Global variable used for checking whats
 # in the order. It is a list aquired with a key.
-order_stats: list[str] = []
+order_stats: str = []
 # Global dict to assign orders to combos so they can be displayed.
 order_combo: dict[str, str] = {}
 # Keeps track of when a car was served.
@@ -482,7 +482,7 @@ start_order_1 = start_order_font.render("START", True, DARK_YELLOW)
 start_order_2 = start_order_font_xs.render("ORDER", True, DARK_YELLOW)
 start_order_3 = start_order_font.render("HERE", True, DARK_YELLOW)
 start_order_4 = start_order_font.render("!!!", True, DARK_YELLOW)
-version = heading_font.render("VERSION: PROTO 6", True, RED)
+version = heading_font.render("VERSION: FULL 1.06", True, RED)
 
 # Second main menu screen
 play_button = main_menu_options.render("PLAY", True, DARK_YELLOW)
@@ -942,9 +942,9 @@ def ai_ordering() -> None:
     else:
         ordered = False
 
-        # The AI waits between 3 and 40 seconds. * 1000 converts to ms.
+        # The AI waits between 5 and 40 seconds. * 1000 converts to ms.
         if not obtained_wait:
-            wait_order = random.randint(5, 45) * 1000 + current_time
+            wait_order = random.randint(5, 40) * 1000 + current_time
             # Only gets the obtained number once.
             obtained_wait = True
 
@@ -1043,8 +1043,8 @@ def game_time(initial_start: int) -> int:
     """
     global current_time
 
-    # The time the game begun, plus 6 minutes (the duration of the game.)
-    begin_time = initial_start + 360000
+    # The time the game begun, plus 8 minutes (the duration of the game.)
+    begin_time = initial_start + 480000
     # Seconds are calculated and converted.
     seconds = (begin_time - current_time) // 1000
     # How many minutes are left.
